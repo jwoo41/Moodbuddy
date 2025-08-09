@@ -1648,11 +1648,11 @@ export default function Home() {
               Exercise
             </h3>
             {getTodaysExercise() ? (
-              <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
+              <div className="text-center bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
+                <div className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {getTodaysExercise()?.exercised ? "💪 Exercised today!" : "😴 Rest day logged"}
                 </div>
-                <p className="text-sm text-green-600 dark:text-green-300">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {getTodaysExercise()?.notes && `Notes: ${getTodaysExercise()?.notes}`}
                 </p>
                 <Button
