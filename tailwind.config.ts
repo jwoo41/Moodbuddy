@@ -61,17 +61,17 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
-        // Custom MindFlow colors
-        'mindflow': {
-          primary: "var(--mindflow-primary)",
-          secondary: "var(--mindflow-secondary)",
-          accent: "var(--mindflow-accent)",
+        // Custom MoodBuddy colors
+        'moodbuddy': {
+          primary: "var(--moodbuddy-primary)",
+          secondary: "var(--moodbuddy-secondary)",
+          accent: "var(--moodbuddy-accent)",
           neutral: {
-            50: "var(--mindflow-neutral-50)",
-            100: "var(--mindflow-neutral-100)",
-            500: "var(--mindflow-neutral-500)",
-            700: "var(--mindflow-neutral-700)",
-            900: "var(--mindflow-neutral-900)",
+            50: "var(--moodbuddy-neutral-50)",
+            100: "var(--moodbuddy-neutral-100)",
+            500: "var(--moodbuddy-neutral-500)",
+            700: "var(--moodbuddy-neutral-700)",
+            900: "var(--moodbuddy-neutral-900)",
           }
         }
       },

@@ -21,8 +21,8 @@ export default function Header() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Brain className="text-white w-4 h-4" />
             </div>
-            <h1 className="text-xl font-semibold text-mindflow-neutral-900 dark:text-foreground">
-              MindFlow
+            <h1 className="text-xl font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
+              MoodBuddy
             </h1>
           </div>
           

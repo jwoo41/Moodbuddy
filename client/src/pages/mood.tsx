@@ -212,10 +212,10 @@ export default function Mood() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-mindflow-neutral-900 dark:text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
             Mood Tracking
           </h1>
-          <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+          <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
             Track your emotional wellbeing and identify patterns.
           </p>
         </div>
@@ -229,13 +229,13 @@ export default function Mood() {
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <Smile className="w-4 h-4 mr-2" />
               Total Entries
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="total-mood-entries">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="total-mood-entries">
               {stats.totalEntries}
             </div>
           </CardContent>
@@ -243,7 +243,7 @@ export default function Mood() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <TrendingUp className="w-4 h-4 mr-2" />
               Most Common
             </CardTitle>
@@ -255,13 +255,13 @@ export default function Mood() {
                   <span className="text-2xl">
                     {moodEmojis[stats.mostCommon as keyof typeof moodEmojis]}
                   </span>
-                  <div className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground" data-testid="most-common-mood">
+                  <div className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="most-common-mood">
                     {moodLabels[stats.mostCommon as keyof typeof moodLabels]}
                   </div>
                 </>
               )}
               {!stats.mostCommon && (
-                <div className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground">--</div>
+                <div className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground">--</div>
               )}
             </div>
           </CardContent>
@@ -269,12 +269,12 @@ export default function Mood() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               This Week
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="week-mood-entries">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="week-mood-entries">
               {stats.thisWeek}
             </div>
           </CardContent>
@@ -302,10 +302,10 @@ export default function Mood() {
                           {moodEmojis[entry.mood as keyof typeof moodEmojis]}
                         </span>
                         <div>
-                          <div className="font-medium text-mindflow-neutral-900 dark:text-foreground" data-testid={`mood-entry-label-${entry.id}`}>
+                          <div className="font-medium text-moodbuddy-neutral-900 dark:text-foreground" data-testid={`mood-entry-label-${entry.id}`}>
                             {moodLabels[entry.mood as keyof typeof moodLabels]}
                           </div>
-                          <div className="text-sm text-mindflow-neutral-500 dark:text-muted-foreground" data-testid={`mood-entry-date-${entry.id}`}>
+                          <div className="text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground" data-testid={`mood-entry-date-${entry.id}`}>
                             {formatDate(entry.createdAt)}
                           </div>
                         </div>
@@ -315,7 +315,7 @@ export default function Mood() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEdit(entry)}
-                          className="text-mindflow-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
+                          className="text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
                           data-testid={`button-edit-mood-${entry.id}`}
                         >
                           <Edit className="w-3 h-3" />
@@ -325,7 +325,7 @@ export default function Mood() {
                           variant="ghost"
                           onClick={() => deleteMoodMutation.mutate(entry.id)}
                           disabled={deleteMoodMutation.isPending}
-                          className="text-mindflow-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
+                          className="text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
                           data-testid={`button-delete-mood-${entry.id}`}
                         >
                           <Trash2 className="w-3 h-3" />
@@ -334,7 +334,7 @@ export default function Mood() {
                     </div>
                     
                     {entry.notes && (
-                      <p className="text-sm text-mindflow-neutral-600 dark:text-muted-foreground" data-testid={`mood-entry-notes-${entry.id}`}>
+                      <p className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground" data-testid={`mood-entry-notes-${entry.id}`}>
                         "{entry.notes}"
                       </p>
                     )}

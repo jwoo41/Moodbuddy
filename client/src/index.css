@@ -42,14 +42,14 @@
   --radius: 0.75rem;
   
   /* Custom colors for mental health app */
-  --mindflow-primary: hsl(213 85% 60%);
-  --mindflow-secondary: hsl(90 73% 47%);
-  --mindflow-accent: hsl(37 95% 55%);
-  --mindflow-neutral-50: hsl(210 22% 97%);
-  --mindflow-neutral-100: hsl(210 16% 93%);
-  --mindflow-neutral-500: hsl(210 7% 42%);
-  --mindflow-neutral-700: hsl(210 11% 29%);
-  --mindflow-neutral-900: hsl(210 13% 13%);
+  --moodbuddy-primary: hsl(213 85% 60%);
+  --moodbuddy-secondary: hsl(90 73% 47%);
+  --moodbuddy-accent: hsl(37 95% 55%);
+  --moodbuddy-neutral-50: hsl(210 22% 97%);
+  --moodbuddy-neutral-100: hsl(210 16% 93%);
+  --moodbuddy-neutral-500: hsl(210 7% 42%);
+  --moodbuddy-neutral-700: hsl(210 11% 29%);
+  --moodbuddy-neutral-900: hsl(210 13% 13%);
 }
 
 .dark {
