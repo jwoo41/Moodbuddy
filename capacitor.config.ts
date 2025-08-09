@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.mindflow.app',
-  appName: 'MindFlow',
+  appId: 'com.moodbuddy.app',
+  appName: 'MoodBuddy',
   webDir: 'dist/public',
   plugins: {
     SplashScreen: {

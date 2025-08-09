@@ -1,14 +1,14 @@
-# MindFlow iOS App Store Deployment Guide
+# MoodBuddy iOS App Store Deployment Guide
 
-Your MindFlow mental health app is now ready for iOS App Store submission! Here's everything you need to know:
+Your MoodBuddy mental health app is now ready for iOS App Store submission! Here's everything you need to know:
 
 ## ✅ What's Already Set Up
 
 1. **Capacitor iOS Project**: Native iOS wrapper created in `/ios` folder
 2. **App Bundle**: Built and synced your web app to native iOS project
 3. **App Configuration**: 
-   - App Name: "MindFlow"
-   - Bundle ID: `com.mindflow.app`
+   - App Name: "MoodBuddy"
+   - Bundle ID: `com.moodbuddy.app`
    - Web assets compiled and ready
 
 ## 🚀 Next Steps for App Store Submission
@@ -26,7 +26,7 @@ This opens your iOS project in Xcode.
 
 ### Step 3: Configure App Settings in Xcode
 1. **App Icons**: Add your app icons (already created as SVG)
-2. **Bundle Identifier**: Set to `com.mindflow.app` (or your custom domain)
+2. **Bundle Identifier**: Set to `com.moodbuddy.app` (or your custom domain)
 3. **Version & Build Number**: Set version (e.g., 1.0.0)
 4. **Deployment Target**: iOS 13.0+ recommended
 5. **App Permissions**: Configure health data permissions if needed
@@ -34,12 +34,12 @@ This opens your iOS project in Xcode.
 ### Step 4: App Store Connect Setup
 1. **Create App Record**: In App Store Connect
 2. **App Information**: 
-   - Name: MindFlow - Mental Health Companion
+   - Name: MoodBuddy - Mental Health Companion
    - Subtitle: Track sleep, mood, medications & journal
    - Category: Health & Fitness
 3. **App Store Description**:
    ```
-   MindFlow helps you take control of your mental health with comprehensive tracking tools.
+   MoodBuddy helps you take control of your mental health with comprehensive tracking tools.
 
    Features:
    • Sleep Pattern Tracking with detailed analytics
