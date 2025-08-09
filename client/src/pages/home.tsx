@@ -93,6 +93,8 @@ export default function Home() {
     wakeTime: ""
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [bedtimeNotificationEnabled, setBedtimeNotificationEnabled] = useState(false);
+  const [bedtimeReminderTime, setBedtimeReminderTime] = useState("22:00");
   const [scheduledNotifications, setScheduledNotifications] = useState<number[]>([]);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -330,10 +332,15 @@ export default function Home() {
 
   // Re-schedule notifications when medications change or notifications are enabled
   useEffect(() => {
-    if (notificationsEnabled && medications.length > 0) {
-      scheduleAllMedicationNotifications();
+    if (notificationsEnabled) {
+      if (medications.length > 0) {
+        scheduleAllMedicationNotifications();
+      }
+      if (bedtimeNotificationEnabled) {
+        scheduleBedtimeNotification();
+      }
     }
-  }, [medications, notificationsEnabled]);
+  }, [medications, notificationsEnabled, bedtimeNotificationEnabled, bedtimeReminderTime]);
 
   const setupNotifications = async () => {
     if ("Notification" in window) {
@@ -343,7 +350,7 @@ export default function Home() {
         scheduleAllMedicationNotifications();
         toast({
           title: "Notifications enabled",
-          description: "You'll receive medication reminders at scheduled times",
+          description: "You can now set up medication and bedtime reminders",
         });
       } else if (permission === "denied") {
         toast({
@@ -362,9 +369,11 @@ export default function Home() {
   };
 
   const scheduleAllMedicationNotifications = () => {
-    // Clear existing notifications
-    scheduledNotifications.forEach(id => clearTimeout(id));
-    setScheduledNotifications([]);
+    // Clear existing medication notifications only
+    const medicationNotifications = scheduledNotifications.filter(id => 
+      medications.some(med => med.times?.some(() => true))
+    );
+    medicationNotifications.forEach(id => clearTimeout(id));
     
     const newNotificationIds: number[] = [];
     
@@ -377,7 +386,55 @@ export default function Home() {
       });
     });
     
-    setScheduledNotifications(newNotificationIds);
+    // Keep bedtime notifications and add new medication notifications
+    setScheduledNotifications(prev => [
+      ...prev.filter(id => !medicationNotifications.includes(id)),
+      ...newNotificationIds
+    ]);
+  };
+
+  const scheduleBedtimeNotification = () => {
+    if (!bedtimeNotificationEnabled || !notificationsEnabled) return;
+    
+    const now = new Date();
+    const [hours, minutes] = bedtimeReminderTime.split(':').map(Number);
+    
+    // Create notification time for today
+    const notificationTime = new Date();
+    notificationTime.setHours(hours, minutes, 0, 0);
+    
+    // If time has passed today, schedule for tomorrow
+    if (notificationTime <= now) {
+      notificationTime.setDate(notificationTime.getDate() + 1);
+    }
+    
+    const timeUntilNotification = notificationTime.getTime() - now.getTime();
+    
+    const timeoutId = window.setTimeout(() => {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification(`🛏️ Bedtime Reminder`, {
+          body: `Time to wind down for bed. Good sleep helps your mental health!`,
+          icon: '/icon-192.svg',
+          tag: 'bedtime-reminder',
+          badge: '/icon-192.svg',
+          requireInteraction: true,
+        });
+
+        // Auto-close notification after 45 seconds
+        setTimeout(() => notification.close(), 45000);
+
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      }
+      
+      // Schedule the next bedtime notification for tomorrow
+      scheduleBedtimeNotification();
+    }, timeUntilNotification);
+    
+    setScheduledNotifications(prev => [...prev, timeoutId]);
   };
 
   const scheduleMedicationNotification = (medicationName: string, time: string, dosage?: string): number | null => {
@@ -621,8 +678,43 @@ export default function Home() {
           ) : null}
           
           {/* Sleep form - always show if no sleep logged or editing */}
+          {/* Bedtime Notification Settings */}
+          {notificationsEnabled && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="bedtime-notifications"
+                    checked={bedtimeNotificationEnabled}
+                    onChange={(e) => setBedtimeNotificationEnabled(e.target.checked)}
+                    className="rounded"
+                    data-testid="checkbox-bedtime-notifications"
+                  />
+                  <label htmlFor="bedtime-notifications" className="text-sm font-medium">
+                    🛏️ Bedtime Reminders
+                  </label>
+                </div>
+                {bedtimeNotificationEnabled && (
+                  <Input
+                    type="time"
+                    value={bedtimeReminderTime}
+                    onChange={(e) => setBedtimeReminderTime(e.target.value)}
+                    className="w-24 h-8 text-sm"
+                    data-testid="input-bedtime-reminder-time"
+                  />
+                )}
+              </div>
+              {bedtimeNotificationEnabled && (
+                <p className="text-xs text-muted-foreground">
+                  We'll remind you to wind down for bed at {bedtimeReminderTime}
+                </p>
+              )}
+            </div>
+          )}
+
           {(!todaysSleep || sleepForm.bedtime || sleepForm.wakeTime) && (
-            <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border">
+            <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border mt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium flex items-center mb-2">
@@ -827,6 +919,11 @@ export default function Home() {
                   <Bell className="w-4 h-4" />
                   <span>Enable Reminders</span>
                 </Button>
+              )}
+              {notificationsEnabled && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-green-600 dark:text-green-400">✓ Reminders On</span>
+                </div>
               )}
             </div>
           </CardTitle>
