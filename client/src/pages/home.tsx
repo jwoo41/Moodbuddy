@@ -602,16 +602,14 @@ export default function Home() {
   };
 
   const scheduleAllMedicationNotifications = () => {
-    // Clear existing medication notifications only
-    const medicationNotifications = scheduledNotifications.filter(id => 
-      medications.some(med => med.times?.some(() => true))
-    );
-    medicationNotifications.forEach(id => clearTimeout(id));
+    // Clear all existing medication notifications
+    scheduledNotifications.forEach(id => clearTimeout(id));
     
     const newNotificationIds: number[] = [];
     
     medications.forEach(medication => {
       medication.times?.forEach(time => {
+        console.log(`Scheduling notification for ${medication.name} at ${time}`);
         const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage || undefined);
         if (notificationId) {
           newNotificationIds.push(notificationId);
@@ -619,11 +617,8 @@ export default function Home() {
       });
     });
     
-    // Keep bedtime notifications and add new medication notifications
-    setScheduledNotifications(prev => [
-      ...prev.filter(id => !medicationNotifications.includes(id)),
-      ...newNotificationIds
-    ]);
+    console.log(`Scheduled ${newNotificationIds.length} medication notifications`);
+    setScheduledNotifications(newNotificationIds);
   };
 
   const scheduleBedtimeNotification = () => {
@@ -733,8 +728,11 @@ export default function Home() {
     }
     
     const timeUntilNotification = notificationTime.getTime() - now.getTime();
+    console.log(`Scheduling ${medicationName} notification in ${Math.round(timeUntilNotification / 1000 / 60)} minutes`);
     
     const timeoutId = window.setTimeout(() => {
+      console.log(`Triggering notification for ${medicationName} at ${time}`);
+      
       if ("Notification" in window && Notification.permission === "granted") {
         const notification = new Notification(`💊 Time for ${medicationName}`, {
           body: `Take your ${dosage || ''} dose now`,
@@ -752,13 +750,18 @@ export default function Home() {
           window.focus();
           notification.close();
         };
+      } else {
+        // Show in-app notification as fallback
+        console.log(`In-app notification: Time for ${medicationName} (${dosage || 'dose'})`);
       }
       
       // Schedule the next notification for tomorrow at the same time
-      const nextNotificationId = scheduleMedicationNotification(medicationName, time, dosage);
-      if (nextNotificationId) {
-        setScheduledNotifications(prev => [...prev.filter(id => id !== timeoutId), nextNotificationId]);
-      }
+      setTimeout(() => {
+        const nextNotificationId = scheduleMedicationNotification(medicationName, time, dosage);
+        if (nextNotificationId) {
+          setScheduledNotifications(prev => [...prev.filter(id => id !== timeoutId), nextNotificationId]);
+        }
+      }, 1000);
     }, timeUntilNotification);
     
     return timeoutId;
@@ -1693,7 +1696,7 @@ export default function Home() {
             {getTodaysWeight() ? (
               <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
-                  ⚖️ Today: {getTodaysWeight()?.weight} {getTodaysWeight()?.unit}
+                  ⚖️ Today: {getTodaysWeight() ? (getTodaysWeight()!.weight / 10).toFixed(1) : '0'} {getTodaysWeight()?.unit}
                 </div>
                 {getTodaysWeight()?.notes && (
                   <p className="text-sm text-blue-600 dark:text-blue-300">
@@ -1707,7 +1710,7 @@ export default function Home() {
                     const todaysWeight = getTodaysWeight();
                     if (todaysWeight) {
                       setWeightForm({
-                        weight: todaysWeight.weight.toString(),
+                        weight: (todaysWeight.weight / 10).toFixed(1),
                         unit: todaysWeight.unit,
                         notes: todaysWeight.notes || ""
                       });
@@ -1749,8 +1752,11 @@ export default function Home() {
                   onClick={() => {
                     const weight = parseFloat(weightForm.weight);
                     if (weight > 0) {
+                      // Convert weight to integer by multiplying by 10 to preserve one decimal place
+                      // e.g., 150.5 lbs becomes 1505
+                      const weightAsInteger = Math.round(weight * 10);
                       addWeightMutation.mutate({
-                        weight,
+                        weight: weightAsInteger,
                         unit: weightForm.unit,
                         notes: weightForm.notes || undefined
                       });
