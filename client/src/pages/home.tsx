@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X } from "lucide-react";
+import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [sleepForm, setSleepForm] = useState({ bedtime: "", wakeTime: "", quality: "" });
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const { data: moodEntries = [] } = useQuery<MoodEntry[]>({
     queryKey: ["/api/mood"],
@@ -133,6 +134,53 @@ export default function Home() {
 
   const todaysMood = getTodaysMood();
   const todaysSleep = getTodaysSleep();
+
+  // Request notification permission and set up medication reminders
+  const setupNotifications = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        toast({
+          title: "Notifications enabled",
+          description: "You'll get reminders for your medications",
+        });
+        
+        // Schedule notifications for medications
+        medications.forEach(med => {
+          med.times.forEach(time => {
+            scheduleNotification(med.name, time);
+          });
+        });
+      }
+    }
+  };
+
+  const scheduleNotification = (medName: string, time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const notificationTime = new Date();
+    notificationTime.setHours(hours, minutes, 0, 0);
+    
+    // If time has passed today, schedule for tomorrow
+    if (notificationTime <= now) {
+      notificationTime.setDate(notificationTime.getDate() + 1);
+    }
+    
+    const timeUntilNotification = notificationTime.getTime() - now.getTime();
+    
+    setTimeout(() => {
+      if (notificationsEnabled && 'Notification' in window) {
+        new Notification(`Time to take ${medName}`, {
+          body: `It's time for your ${time} dose`,
+          icon: '/favicon.ico',
+        });
+      }
+      
+      // Schedule for next day
+      setTimeout(() => scheduleNotification(medName, time), 24 * 60 * 60 * 1000);
+    }, timeUntilNotification);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -236,9 +284,23 @@ export default function Home() {
       {medications.length > 0 && (
         <Card className="mb-6 max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <span className="text-2xl mr-2">💊</span>
-              Today's Medications
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-2xl mr-2">💊</span>
+                Today's Medications
+              </div>
+              {!notificationsEnabled && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={setupNotifications}
+                  className="flex items-center space-x-1"
+                  data-testid="button-enable-notifications"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span>Enable Reminders</span>
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -246,28 +308,60 @@ export default function Home() {
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="font-medium mb-2">{med.name} - {med.dosage}</div>
-                  <div className="flex space-x-2">
-                    {med.times.map((time) => (
-                      <div key={time} className="flex items-center space-x-2">
-                        <span className="text-sm">{time}</span>
-                        <Button
-                          size="sm"
-                          variant={isMedicationTakenToday(med.id, time) ? "default" : "outline"}
-                          onClick={() => !isMedicationTakenToday(med.id, time) && markMedicationTakenMutation.mutate({
-                            medicationId: med.id,
-                            scheduledTime: time
-                          })}
-                          disabled={isMedicationTakenToday(med.id, time) || markMedicationTakenMutation.isPending}
-                          data-testid={`med-${med.id}-${time}`}
-                        >
-                          {isMedicationTakenToday(med.id, time) ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <X className="w-4 h-4" />
+                  <div className="flex space-x-4">
+                    {med.times.map((time) => {
+                      const isTaken = isMedicationTakenToday(med.id, time);
+                      const timeLabel = time.startsWith('0') && parseInt(time.split(':')[0]) < 12 ? 'AM' : 'PM';
+                      
+                      return (
+                        <div key={time} className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
+                          isTaken ? 'bg-green-100 dark:bg-green-900/30' : 'bg-white dark:bg-gray-700'
+                        }`}>
+                          <span className="text-sm font-medium">{time} {timeLabel}</span>
+                          <div className="flex space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="p-1 h-auto hover:bg-green-200 dark:hover:bg-green-800"
+                              onClick={() => !isTaken && markMedicationTakenMutation.mutate({
+                                medicationId: med.id,
+                                scheduledTime: time
+                              })}
+                              disabled={isTaken || markMedicationTakenMutation.isPending}
+                              data-testid={`med-taken-${med.id}-${time}`}
+                            >
+                              <span className={`text-2xl ${isTaken ? 'opacity-100' : 'opacity-50'}`}>
+                                👍
+                              </span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="p-1 h-auto hover:bg-red-200 dark:hover:bg-red-800"
+                              onClick={() => {
+                                // For now, just show a toast - you could implement "skip dose" functionality
+                                toast({
+                                  title: "Dose noted",
+                                  description: "Marked as intentionally skipped",
+                                  variant: "destructive",
+                                });
+                              }}
+                              disabled={isTaken}
+                              data-testid={`med-skip-${med.id}-${time}`}
+                            >
+                              <span className={`text-2xl ${!isTaken ? 'opacity-50' : 'opacity-100'}`}>
+                                👎
+                              </span>
+                            </Button>
+                          </div>
+                          {isTaken && (
+                            <span className="text-green-600 dark:text-green-400 text-sm font-medium">
+                              ✅ Done
+                            </span>
                           )}
-                        </Button>
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
