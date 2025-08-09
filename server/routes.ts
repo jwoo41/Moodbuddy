@@ -31,21 +31,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { displayName } = req.body;
+      const updateData = req.body;
       
-      if (!displayName || typeof displayName !== 'string') {
+      // Validate required fields
+      if (!updateData.displayName || typeof updateData.displayName !== 'string') {
         return res.status(400).json({ message: "Display name is required" });
       }
       
-      const updatedUser = await storage.upsertUser({
+      // Get existing user
+      const existingUser = await storage.getUser(userId);
+      
+      // Prepare update object
+      const userUpdate: any = {
         id: userId,
-        displayName: displayName.trim(),
-      });
+        email: existingUser?.email || req.user.claims.email,
+        firstName: existingUser?.firstName || req.user.claims.given_name,
+        lastName: existingUser?.lastName || req.user.claims.family_name,
+        profileImageUrl: existingUser?.profileImageUrl || req.user.claims.picture,
+        displayName: updateData.displayName.trim(),
+      };
+
+      // Add onboarding fields if provided
+      if (updateData.email) userUpdate.email = updateData.email;
+      if (updateData.phoneNumber !== undefined) userUpdate.phoneNumber = updateData.phoneNumber;
+      if (updateData.emergencyContactName !== undefined) userUpdate.emergencyContactName = updateData.emergencyContactName;
+      if (updateData.emergencyContactEmail !== undefined) userUpdate.emergencyContactEmail = updateData.emergencyContactEmail;
+      if (updateData.emergencyContactPhone !== undefined) userUpdate.emergencyContactPhone = updateData.emergencyContactPhone;
+      if (updateData.alertsEnabled !== undefined) userUpdate.alertsEnabled = updateData.alertsEnabled;
+      if (updateData.shareAlertsEnabled !== undefined) userUpdate.shareAlertsEnabled = updateData.shareAlertsEnabled;
+      if (updateData.onboardingCompleted !== undefined) userUpdate.onboardingCompleted = updateData.onboardingCompleted;
+      
+      const updatedUser = await storage.upsertUser(userUpdate);
       
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user" });
+      res.status(500).json({ message: "Failed to update user", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

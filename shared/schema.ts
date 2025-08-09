@@ -124,6 +124,7 @@ export const insertSleepEntrySchema = createInsertSchema(sleepEntries, {
   bedtime: z.coerce.date(),
   wakeTime: z.coerce.date(),
   hoursSlept: z.coerce.number(),
+  quality: z.coerce.string(),
 }).omit({
   id: true,
   createdAt: true,
