@@ -411,6 +411,22 @@ export default function Home() {
     },
   });
 
+  const updateWeightMutation = useMutation({
+    mutationFn: async (data: { id: string; weight: number; unit: string; notes?: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest("PUT", `/api/weight/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
+      toast({
+        title: "Weight updated",
+        description: "Your weight has been updated successfully.",
+      });
+      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+    },
+  });
+
   const isMedicationTakenToday = (medicationId: string, scheduledTime: string) => {
     const today = new Date().toDateString();
     return medicationTaken.some(record => 
@@ -1185,151 +1201,7 @@ export default function Home() {
         </CardHeader>
       </Card>
 
-      {/* Exercise Tracker */}
-      <Card className="mb-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="w-6 h-6 mr-2 text-green-600" />
-            Exercise Today
-          </CardTitle>
-          
-          {/* Exercise Status Display */}
-          {getTodaysExercise() && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">
-                    {getTodaysExercise()?.exercised ? "💪" : "😴"}
-                  </span>
-                  <div>
-                    <p className="font-medium text-green-900 dark:text-green-100">
-                      {getTodaysExercise()?.exercised ? "Great job! You exercised today" : "No exercise logged today"}
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-300">
-                      Logged at {new Date(getTodaysExercise()!.createdAt).toLocaleTimeString()}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const current = getTodaysExercise();
-                    if (current) {
-                      addExerciseMutation.mutate({ 
-                        exercised: !current.exercised,
-                        notes: current.notes || undefined
-                      });
-                    }
-                  }}
-                  data-testid="button-toggle-exercise"
-                >
-                  {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
-                </Button>
-              </div>
-            </div>
-          )}
-          
-          {/* Exercise Quick Log Buttons */}
-          {!getTodaysExercise() && (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Did you exercise today? Physical activity is great for mental health! 💪
-              </p>
-              
-              <div className="flex space-x-3">
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
-                  disabled={addExerciseMutation.isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  data-testid="button-exercise-yes"
-                >
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xl mr-2">👍</span>
-                    <span className="font-medium">Yes!</span>
-                  </div>
-                </Button>
-                
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
-                  disabled={addExerciseMutation.isPending}
-                  variant="outline"
-                  className="flex-1"
-                  data-testid="button-exercise-no"
-                >
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xl mr-2">👎</span>
-                    <span>Not Today</span>
-                  </div>
-                </Button>
-              </div>
-              
-              {addExerciseMutation.isPending && (
-                <p className="text-sm text-center text-muted-foreground">
-                  💪 Logging exercise...
-                </p>
-              )}
-            </div>
-          )}
-          
-          {/* Weight Tracking Section */}
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Weight className="w-5 h-5 mr-2 text-blue-600" />
-                <span className="font-medium">Weight Tracking</span>
-              </div>
-              {weightEntries.length > 0 && weightEntries[0] && (
-                <span className="text-sm text-muted-foreground">
-                  Last: {weightEntries[0].weight / 10} {weightEntries[0].unit} 
-                  ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
-                </span>
-              )}
-            </div>
-            
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="Enter weight"
-                  value={weightForm.weight}
-                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
-                  data-testid="input-weight"
-                />
-              </div>
-              <Select
-                value={weightForm.unit}
-                onValueChange={(value) => setWeightForm({...weightForm, unit: value})}
-              >
-                <SelectTrigger className="w-20" data-testid="select-weight-unit">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lbs">lbs</SelectItem>
-                  <SelectItem value="kg">kg</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={() => {
-                  if (weightForm.weight) {
-                    addWeightMutation.mutate({
-                      weight: Math.round(parseFloat(weightForm.weight) * 10), // Store as integer (e.g., 1505 for 150.5)
-                      unit: weightForm.unit,
-                      notes: weightForm.notes || undefined
-                    });
-                  }
-                }}
-                disabled={!weightForm.weight || addWeightMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-log-weight"
-              >
-                {addWeightMutation.isPending ? "⚖️ Saving..." : "⚖️ Log Weight"}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+
 
       {/* Medication Tracker */}
       <Card className="mb-6 max-w-2xl mx-auto">
@@ -1680,165 +1552,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {/* Exercise & Weight Tracker */}
-      <Card className="mb-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="text-2xl mr-2">💪</span>
-            Exercise & Weight Tracker
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Exercise Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <span className="text-xl mr-2">💪</span>
-              Exercise
-            </h3>
-            {getTodaysExercise() ? (
-              <div className="text-center bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <div className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {getTodaysExercise()?.exercised ? "💪 Exercised today!" : "😴 Rest day logged"}
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {getTodaysExercise()?.notes && `Notes: ${getTodaysExercise()?.notes}`}
-                </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const currentExercise = getTodaysExercise();
-                    if (currentExercise) {
-                      addExerciseMutation.mutate({ 
-                        exercised: !currentExercise.exercised, 
-                        notes: currentExercise.notes || undefined 
-                      });
-                    }
-                  }}
-                  className="mt-2"
-                  data-testid="button-toggle-exercise"
-                >
-                  Change to {getTodaysExercise()?.exercised ? "Rest Day" : "Exercised"}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border">
-                <p className="text-sm text-orange-800 dark:text-orange-200 text-center">
-                  Did you exercise today? Even a short walk counts!
-                </p>
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={() => addExerciseMutation.mutate({ exercised: true })}
-                    disabled={addExerciseMutation.isPending}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    data-testid="button-exercised-yes"
-                  >
-                    💪 Yes, I exercised!
-                  </Button>
-                  <Button
-                    onClick={() => addExerciseMutation.mutate({ exercised: false })}
-                    disabled={addExerciseMutation.isPending}
-                    variant="outline" 
-                    className="flex-1"
-                    data-testid="button-exercised-no"
-                  >
-                    😴 Rest day
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700"></div>
-
-          {/* Weight Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <span className="text-xl mr-2">⚖️</span>
-              Weight
-            </h3>
-            {getTodaysWeight() ? (
-              <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
-                  ⚖️ Today: {getTodaysWeight() ? (getTodaysWeight()!.weight / 10).toFixed(1) : '0'} {getTodaysWeight()?.unit}
-                </div>
-                {getTodaysWeight()?.notes && (
-                  <p className="text-sm text-blue-600 dark:text-blue-300">
-                    Notes: {getTodaysWeight()?.notes}
-                  </p>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const todaysWeight = getTodaysWeight();
-                    if (todaysWeight) {
-                      setWeightForm({
-                        weight: (todaysWeight.weight / 10).toFixed(1),
-                        unit: todaysWeight.unit,
-                        notes: todaysWeight.notes || ""
-                      });
-                    }
-                  }}
-                  className="mt-2"
-                  data-testid="button-edit-weight"
-                >
-                  Update Weight
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    type="number"
-                    placeholder="Weight"
-                    value={weightForm.weight}
-                    onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
-                    data-testid="input-weight"
-                  />
-                  <Select value={weightForm.unit} onValueChange={(value) => setWeightForm({...weightForm, unit: value})}>
-                    <SelectTrigger data-testid="select-weight-unit">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lbs">lbs</SelectItem>
-                      <SelectItem value="kg">kg</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Input
-                  placeholder="Notes (optional)"
-                  value={weightForm.notes}
-                  onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
-                  data-testid="input-weight-notes"
-                />
-                <Button
-                  onClick={() => {
-                    const weight = parseFloat(weightForm.weight);
-                    if (weight > 0) {
-                      // Convert weight to integer by multiplying by 10 to preserve one decimal place
-                      // e.g., 150.5 lbs becomes 1505
-                      const weightAsInteger = Math.round(weight * 10);
-                      addWeightMutation.mutate({
-                        weight: weightAsInteger,
-                        unit: weightForm.unit,
-                        notes: weightForm.notes || undefined
-                      });
-                      setWeightForm({ weight: "", unit: "lbs", notes: "" });
-                    }
-                  }}
-                  disabled={!weightForm.weight || addWeightMutation.isPending}
-                  className="w-full"
-                  data-testid="button-log-weight"
-                >
-                  {addWeightMutation.isPending ? "Logging..." : "⚖️ Log Weight"}
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -1928,6 +1642,201 @@ export default function Home() {
           userName={user?.firstName || user?.displayName || ""}
         />
       )}
+      {/* Exercise & Weight Tracker - Combined section at bottom */}
+      <Card className="mb-6 max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Activity className="w-6 h-6 mr-2 text-green-600" />
+            Exercise & Weight Tracker
+          </CardTitle>
+          
+          {/* Exercise Status Display */}
+          {getTodaysExercise() && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">
+                    {getTodaysExercise()?.exercised ? "💪" : "😴"}
+                  </span>
+                  <div>
+                    <p className="font-medium text-green-900 dark:text-green-100">
+                      {getTodaysExercise()?.exercised ? "Great job! You exercised today" : "No exercise logged today"}
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-300">
+                      Logged at {new Date(getTodaysExercise()!.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const current = getTodaysExercise();
+                    if (current) {
+                      addExerciseMutation.mutate({ 
+                        exercised: !current.exercised,
+                        notes: current.notes || undefined
+                      });
+                    }
+                  }}
+                  data-testid="button-toggle-exercise"
+                >
+                  {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* Exercise Quick Log Buttons */}
+          {!getTodaysExercise() && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Did you exercise today? Physical activity is great for mental health!
+              </p>
+              
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
+                  disabled={addExerciseMutation.isPending}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-exercise-yes"
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="text-2xl mr-2">👍</span>
+                    <span className="font-medium">Yes!</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
+                  disabled={addExerciseMutation.isPending}
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-exercise-no"
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="text-2xl mr-2">👎</span>
+                    <span>Not Today</span>
+                  </div>
+                </Button>
+              </div>
+              
+              {addExerciseMutation.isPending && (
+                <p className="text-sm text-center text-muted-foreground">
+                  Logging exercise...
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Weight Tracking Section */}
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Weight className="w-5 h-5 mr-2 text-blue-600" />
+                <span className="font-medium">Weight Tracking</span>
+              </div>
+              {getTodaysWeight() ? (
+                <div className="text-center">
+                  <div className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    Today: {(getTodaysWeight()!.weight / 10) % 1 === 0 ? Math.floor(getTodaysWeight()!.weight / 10) : (getTodaysWeight()!.weight / 10).toFixed(1)} {getTodaysWeight()?.unit}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const todaysWeight = getTodaysWeight();
+                      if (todaysWeight) {
+                        const displayWeight = (todaysWeight.weight / 10) % 1 === 0 ? 
+                          Math.floor(todaysWeight.weight / 10).toString() : 
+                          (todaysWeight.weight / 10).toFixed(1);
+                        setWeightForm({
+                          weight: displayWeight,
+                          unit: todaysWeight.unit,
+                          notes: todaysWeight.notes || ""
+                        });
+                      }
+                    }}
+                    className="mt-1"
+                    data-testid="button-edit-weight"
+                  >
+                    Edit
+                  </Button>
+                </div>
+              ) : weightEntries.length > 0 && weightEntries[0] && (
+                <span className="text-sm text-muted-foreground">
+                  Last: {(weightEntries[0].weight / 10) % 1 === 0 ? Math.floor(weightEntries[0].weight / 10) : (weightEntries[0].weight / 10).toFixed(1)} {weightEntries[0].unit} 
+                  ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
+                </span>
+              )}
+            </div>
+            
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="Enter weight"
+                  value={weightForm.weight}
+                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
+                  data-testid="input-weight"
+                />
+              </div>
+              <Select
+                value={weightForm.unit}
+                onValueChange={(value) => setWeightForm({...weightForm, unit: value})}
+              >
+                <SelectTrigger className="w-20" data-testid="select-weight-unit">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lbs">lbs</SelectItem>
+                  <SelectItem value="kg">kg</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => {
+                  if (weightForm.weight) {
+                    const todaysWeight = getTodaysWeight();
+                    if (todaysWeight) {
+                      updateWeightMutation.mutate({
+                        id: todaysWeight.id,
+                        weight: Math.round(parseFloat(weightForm.weight) * 10),
+                        unit: weightForm.unit,
+                        notes: weightForm.notes || undefined
+                      });
+                    } else {
+                      addWeightMutation.mutate({
+                        weight: Math.round(parseFloat(weightForm.weight) * 10),
+                        unit: weightForm.unit,
+                        notes: weightForm.notes || undefined
+                      });
+                    }
+                    setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                  }
+                }}
+                disabled={!weightForm.weight || addWeightMutation.isPending || updateWeightMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                data-testid="button-log-weight"
+              >
+                {(addWeightMutation.isPending || updateWeightMutation.isPending) ? 
+                  "Saving..." : 
+                  getTodaysWeight() ? "Update Weight" : "Log Weight"}
+              </Button>
+            </div>
+            {weightForm.notes !== undefined && (
+              <Input
+                placeholder="Notes (optional)"
+                value={weightForm.notes}
+                onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
+                data-testid="input-weight-notes"
+                className="mt-2"
+              />
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+
       {/* Emergency Hotline Footer */}
       <div className="mt-8 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800/30">
         <div className="text-center">
