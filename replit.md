@@ -1,8 +1,8 @@
-# MindWell - Mental Health Companion
+# MoodBuddy - Mental Health Companion
 
 ## Overview
 
-MindWell is a comprehensive mental health tracking application designed to help users monitor their wellbeing through multiple dimensions. The application provides tools for tracking mood, sleep patterns, medication adherence, and journaling. Built as a full-stack web application, it features a modern React frontend with a clean, accessible interface and an Express.js backend with PostgreSQL database storage.
+MoodBuddy is a comprehensive mental health tracking application designed to help users monitor their wellbeing through multiple dimensions. The application provides tools for tracking mood, sleep patterns, medication adherence, and journaling. Built as a full-stack web application, it features a modern React frontend with a clean, accessible interface and an Express.js backend with PostgreSQL database storage.
 
 The application follows a dashboard-centric approach where users can view aggregated insights from all tracking categories, with dedicated pages for detailed management of each health metric. The design emphasizes simplicity and ease of use to encourage consistent daily tracking habits.
 
@@ -11,7 +11,7 @@ The application follows a dashboard-centric approach where users can view aggreg
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-App name preference: "MindWell" (updated from "MindFlow")
+App name preference: "MoodBuddy" (updated from "MindFlow" → "MindWell" → "MoodBuddy")
 
 ## System Architecture
 
