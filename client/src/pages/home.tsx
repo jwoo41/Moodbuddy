@@ -1603,87 +1603,8 @@ export default function Home() {
         </CardContent>
       </Card>
 
-
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Link href="/sleep">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">😴</div>
-              <div className="font-medium">Sleep History</div>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/medication">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">💊</div>
-              <div className="font-medium">Manage Meds</div>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/journal">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">📝</div>
-              <div className="font-medium">Journal</div>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/chat">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">🤖</div>
-              <div className="font-medium">AI Chat</div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="text-2xl mr-2">📊</span>
-            Your Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {moodEntries.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Mood entries
-              </div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {sleepEntries.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Sleep logs
-              </div>
-            </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {medications.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Active medications
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Exercise & Weight Tracker - Combined section at bottom */}
-      <Card className="mb-6 max-w-2xl mx-auto">
+      {/* Exercise & Weight Tracker - Combined section under medications */}
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Activity className="w-6 h-6 mr-2 text-green-600" />
@@ -1719,10 +1640,6 @@ export default function Home() {
                       });
                     }
                   }}
-                  className={getTodaysExercise()?.exercised 
-                    ? "bg-green-100 border-green-300 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:border-green-700 dark:text-green-100" 
-                    : ""
-                  }
                   data-testid="button-toggle-exercise"
                 >
                   {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
@@ -1743,7 +1660,7 @@ export default function Home() {
                   onClick={() => addExerciseMutation.mutate({ exercised: true })}
                   disabled={addExerciseMutation.isPending}
                   variant="outline"
-                  className="flex-1 hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20"
+                  className="flex-1 hover:bg-green-50 hover:border-green-200 hover:text-green-800 dark:hover:bg-green-900/20"
                   data-testid="button-exercise-yes"
                 >
                   <div className="flex items-center justify-center">
@@ -1881,6 +1798,85 @@ export default function Home() {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <Link href="/sleep">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-2">😴</div>
+              <div className="font-medium">Sleep History</div>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        <Link href="/medication">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-2">💊</div>
+              <div className="font-medium">Manage Meds</div>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        <Link href="/journal">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-2">📝</div>
+              <div className="font-medium">Journal</div>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        <Link href="/chat">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-2">🤖</div>
+              <div className="font-medium">AI Chat</div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="text-2xl mr-2">📊</span>
+            Your Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {moodEntries.length}
+              </div>
+              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
+                Mood entries
+              </div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {sleepEntries.length}
+              </div>
+              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
+                Sleep logs
+              </div>
+            </div>
+            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {medications.length}
+              </div>
+              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
+                Active medications
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
 
       {/* Bottom spacing for mobile nav */}
       <div className="h-20 md:h-0"></div>
