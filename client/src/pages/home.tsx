@@ -1701,7 +1701,7 @@ export default function Home() {
               {getTodaysWeight() ? (
                 <div className="text-center">
                   <div className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                    Today: {(getTodaysWeight()!.weight / 10) % 1 === 0 ? Math.floor(getTodaysWeight()!.weight / 10) : (getTodaysWeight()!.weight / 10).toFixed(1)} {getTodaysWeight()?.unit}
+                    Today: {getTodaysWeight()!.weight / 10} {getTodaysWeight()?.unit}
                   </div>
                   <Button
                     size="sm"
@@ -1709,11 +1709,8 @@ export default function Home() {
                     onClick={() => {
                       const todaysWeight = getTodaysWeight();
                       if (todaysWeight) {
-                        const displayWeight = (todaysWeight.weight / 10) % 1 === 0 ? 
-                          Math.floor(todaysWeight.weight / 10).toString() : 
-                          (todaysWeight.weight / 10).toFixed(1);
                         setWeightForm({
-                          weight: displayWeight,
+                          weight: (todaysWeight.weight / 10).toString(),
                           unit: todaysWeight.unit,
                           notes: todaysWeight.notes || ""
                         });
@@ -1727,7 +1724,7 @@ export default function Home() {
                 </div>
               ) : weightEntries.length > 0 && weightEntries[0] && (
                 <span className="text-sm text-muted-foreground">
-                  Last: {(weightEntries[0].weight / 10) % 1 === 0 ? Math.floor(weightEntries[0].weight / 10) : (weightEntries[0].weight / 10).toFixed(1)} {weightEntries[0].unit} 
+                  Last: {weightEntries[0].weight / 10} {weightEntries[0].unit} 
                   ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
                 </span>
               )}
@@ -1783,7 +1780,7 @@ export default function Home() {
               >
                 {(addWeightMutation.isPending || updateWeightMutation.isPending) ? 
                   "Saving..." : 
-                  getTodaysWeight() ? "Update Weight" : "Log Weight"}
+                  getTodaysWeight() && weightForm.weight ? "Update Weight" : "Log Weight"}
               </Button>
             </div>
             {weightForm.notes !== undefined && (
