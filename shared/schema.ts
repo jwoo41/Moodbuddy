@@ -59,7 +59,7 @@ export const medications = pgTable("medications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
-  dosage: text("dosage").notNull(),
+  dosage: text("dosage"),
   frequency: text("frequency").notNull(), // daily, twice-daily, weekly, etc.
   times: text("times").array().notNull(), // array of time strings like ["08:00", "20:00"]
   isActive: boolean("is_active").default(true).notNull(),
@@ -163,6 +163,7 @@ export const insertAlertNotificationSchema = createInsertSchema(alertNotificatio
 // Onboarding schema for capturing initial user info
 export const onboardingSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
+  email: z.string().email("Valid email is required"),
   phoneNumber: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactEmail: z.string().email().optional().or(z.literal("")),

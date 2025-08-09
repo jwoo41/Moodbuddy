@@ -35,7 +35,7 @@ const moodLabels = {
 
 const medicationFormSchema = z.object({
   name: z.string().min(1, "Medication name is required"),
-  dosage: z.string().min(1, "Dosage is required"),
+  dosage: z.string().optional(),
   frequency: z.string().min(1, "Frequency is required"),
   times: z.array(z.string()).min(1, "At least one time is required"),
 });
@@ -1260,9 +1260,9 @@ export default function Home() {
                         name="dosage"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Dosage</FormLabel>
+                            <FormLabel>Dosage (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., 50mg" {...field} data-testid="input-medication-dosage" />
+                              <Input placeholder="e.g., 50mg (optional)" {...field} data-testid="input-medication-dosage" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1400,7 +1400,7 @@ export default function Home() {
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="font-medium">{med.name} - {med.dosage}</div>
+                      <div className="font-medium">{med.name}{med.dosage ? ` - ${med.dosage}` : ''}</div>
                       {notificationsEnabled && (
                         <div className="flex items-center space-x-1 mt-1">
                           <Bell className="w-3 h-3 text-blue-500" />
