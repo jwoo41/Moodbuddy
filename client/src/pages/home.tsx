@@ -98,14 +98,25 @@ export default function Home() {
 
   const addSleepMutation = useMutation({
     mutationFn: async (data: { bedtime: string; wakeTime: string }) => {
+      // Validate input
+      if (!data.bedtime || !data.wakeTime) {
+        throw new Error("Both bedtime and wake time are required");
+      }
+
       const bedtime = new Date(`${new Date().toDateString()} ${data.bedtime}:00`);
       const wakeTime = new Date(`${new Date().toDateString()} ${data.wakeTime}:00`);
       
+      // If wake time is earlier than bedtime, assume it's the next day
       if (wakeTime < bedtime) {
         wakeTime.setDate(wakeTime.getDate() + 1);
       }
       
       const hoursSlept = Math.round((wakeTime.getTime() - bedtime.getTime()) / (1000 * 60 * 60) * 10) / 10;
+
+      // Validate reasonable sleep duration (1-16 hours)
+      if (hoursSlept < 1 || hoursSlept > 16) {
+        throw new Error("Sleep duration must be between 1 and 16 hours");
+      }
 
       const sleepData = {
         bedtime,
@@ -247,9 +258,11 @@ export default function Home() {
         
         // Schedule notifications for medications
         medications.forEach(med => {
-          med.times.forEach(time => {
-            scheduleNotification(med.name, time);
-          });
+          if (med.times && med.times.length > 0) {
+            med.times.forEach(time => {
+              scheduleNotification(med.name, time);
+            });
+          }
         });
       }
     }
@@ -424,10 +437,13 @@ export default function Home() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Frequency</FormLabel>
-                            <Select onValueChange={(value) => {
-                              field.onChange(value);
-                              handleFrequencyChange(value);
-                            }} defaultValue={field.value}>
+                            <Select 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                handleFrequencyChange(value);
+                              }} 
+                              value={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger data-testid="select-medication-frequency">
                                   <SelectValue placeholder="How often?" />
@@ -535,7 +551,7 @@ export default function Home() {
                   }`}>
                     <div className="text-center">
                       <div className="font-bold text-lg mb-2">
-                        Today's Schedule: {med.times.join(', ')}
+                        Today's Schedule: {med.times?.length > 0 ? med.times.join(', ') : 'No times set'}
                       </div>
                       <div className="text-sm text-muted-foreground mb-3">
                         {med.frequency === 'daily' ? '1x daily' : med.frequency === 'twice-daily' ? '2x daily' : '3x daily'}
@@ -550,10 +566,10 @@ export default function Home() {
                             // Mark medication as taken for the current time or next scheduled time
                             const currentHour = new Date().getHours();
                             const currentTime = `${currentHour.toString().padStart(2, '0')}:00`;
-                            const nextTime = med.times.find(time => {
+                            const nextTime = med.times?.find(time => {
                               const timeHour = parseInt(time.split(':')[0]);
                               return timeHour >= currentHour;
-                            }) || med.times[0];
+                            }) || med.times?.[0] || '08:00';
                             
                             markMedicationTakenMutation.mutate({
                               medicationId: med.id,
