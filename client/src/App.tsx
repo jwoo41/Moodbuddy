@@ -8,6 +8,7 @@ import NotFound from "./pages/not-found";
 import Landing from "./pages/landing";
 import Home from "./pages/home";
 import Sleep from "./pages/sleep";
+import Exercise from "./pages/exercise";
 import Medication from "./pages/medication";
 import Mood from "./pages/mood";
 import Journal from "./pages/journal";
@@ -36,6 +37,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/sleep" component={Sleep} />
+          <Route path="/exercise" component={Exercise} />
           <Route path="/medication" component={Medication} />
           <Route path="/mood" component={Mood} />
           <Route path="/journal" component={Journal} />

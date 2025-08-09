@@ -1,12 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { Home, Moon, Smile, BookOpen, Pill, MessageCircle } from "lucide-react";
+import { Home, Moon, Smile, BookOpen, Pill, MessageCircle, Activity } from "lucide-react";
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Sleep", href: "/sleep", icon: Moon },
+  { name: "Exercise", href: "/exercise", icon: Activity },
   { name: "Mood", href: "/mood", icon: Smile },
   { name: "Meds", href: "/medication", icon: Pill },
-  { name: "Journal", href: "/journal", icon: BookOpen },
   { name: "Chat", href: "/chat", icon: MessageCircle },
 ];
 
