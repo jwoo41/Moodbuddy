@@ -1682,17 +1682,6 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {/* Bottom spacing for mobile nav */}
-      <div className="h-20 md:h-0"></div>
-
-      {/* Dynamic import to prevent bundle size issues */}
-      {showOnboarding && (
-        <OnboardingModal 
-          open={showOnboarding} 
-          onComplete={() => setShowOnboarding(false)}
-          userName={user?.firstName || user?.displayName || ""}
-        />
-      )}
       {/* Exercise & Weight Tracker - Combined section at bottom */}
       <Card className="mb-6 max-w-2xl mx-auto">
         <CardHeader>
@@ -1730,6 +1719,10 @@ export default function Home() {
                       });
                     }
                   }}
+                  className={getTodaysExercise()?.exercised 
+                    ? "bg-green-100 border-green-300 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:border-green-700 dark:text-green-100" 
+                    : ""
+                  }
                   data-testid="button-toggle-exercise"
                 >
                   {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
@@ -1749,7 +1742,8 @@ export default function Home() {
                 <Button
                   onClick={() => addExerciseMutation.mutate({ exercised: true })}
                   disabled={addExerciseMutation.isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  variant="outline"
+                  className="flex-1 hover:bg-green-50 hover:border-green-200 dark:hover:bg-green-900/20"
                   data-testid="button-exercise-yes"
                 >
                   <div className="flex items-center justify-center">
@@ -1887,6 +1881,18 @@ export default function Home() {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Bottom spacing for mobile nav */}
+      <div className="h-20 md:h-0"></div>
+
+      {/* Dynamic import to prevent bundle size issues */}
+      {showOnboarding && (
+        <OnboardingModal 
+          open={showOnboarding} 
+          onComplete={() => setShowOnboarding(false)}
+          userName={user?.firstName || user?.displayName || ""}
+        />
+      )}
 
       {/* Emergency Hotline Footer */}
       <div className="mt-8 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800/30">
