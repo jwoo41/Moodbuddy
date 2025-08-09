@@ -78,6 +78,7 @@ export class MemStorage implements IStorage {
       email: "demo@moodbuddy.app",
       firstName: "Sarah",
       lastName: "Demo",
+      displayName: "Sarah",
       profileImageUrl: null,
     });
   }
@@ -95,6 +96,7 @@ export class MemStorage implements IStorage {
       email: userData.email ?? null,
       firstName: userData.firstName ?? null,
       lastName: userData.lastName ?? null,
+      displayName: userData.displayName ?? null,
       profileImageUrl: userData.profileImageUrl ?? null,
       createdAt: userData.createdAt ?? now,
       updatedAt: now
@@ -118,6 +120,7 @@ export class MemStorage implements IStorage {
       ...entry,
       id,
       createdAt: new Date(),
+      description: entry.description || null,
       notes: entry.notes || null,
     };
     this.moodEntries.set(id, moodEntry);
@@ -155,6 +158,8 @@ export class MemStorage implements IStorage {
       ...entry,
       id,
       createdAt: new Date(),
+      bedtimeDescriptor: entry.bedtimeDescriptor || null,
+      wakeupDescriptor: entry.wakeupDescriptor || null,
       notes: entry.notes || null,
     };
     this.sleepEntries.set(id, sleepEntry);

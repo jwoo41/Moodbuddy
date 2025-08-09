@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  displayName: varchar("display_name"), // User's preferred display name
   profileImageUrl: varchar("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -29,6 +30,7 @@ export const moodEntries = pgTable("mood_entries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   mood: varchar("mood").notNull(), // very-sad, sad, neutral, happy, very-happy
+  description: text("description"), // User's description of their mood
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -40,6 +42,8 @@ export const sleepEntries = pgTable("sleep_entries", {
   wakeTime: timestamp("wake_time").notNull(),
   hoursSlept: integer("hours_slept").notNull(),
   quality: varchar("quality").notNull(), // poor, fair, good, excellent
+  bedtimeDescriptor: text("bedtime_descriptor"), // How user felt going to bed
+  wakeupDescriptor: text("wakeup_descriptor"), // How user felt waking up
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
