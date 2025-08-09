@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, BookOpen, Search, Edit, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Search, Edit, Trash2, Mic, MicOff, Square } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,9 @@ export default function Journal() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,6 +43,83 @@ export default function Journal() {
       content: "",
     },
   });
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setSpeechSupported(true);
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          const currentContent = form.getValues("content");
+          form.setValue("content", currentContent + finalTranscript + " ");
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+        if (event.error === 'not-allowed') {
+          toast({
+            title: "Microphone access denied",
+            description: "Please allow microphone access to use voice input.",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+      
+      recognitionRef.current = recognition;
+    }
+    
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [form, toast]);
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      setIsRecording(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   const addJournalMutation = useMutation({
     mutationFn: async (data: JournalFormData) => {
@@ -210,7 +290,12 @@ export default function Journal() {
           </p>
         </div>
         
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open && isRecording) {
+            stopRecording();
+          }
+        }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-journal-entry">
               <Plus className="w-4 h-4 mr-2" />
@@ -247,16 +332,59 @@ export default function Journal() {
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Content</FormLabel>
+                      <FormLabel className="flex items-center justify-between">
+                        Content
+                        {speechSupported && (
+                          <Button
+                            type="button"
+                            variant={isRecording ? "destructive" : "outline"}
+                            size="sm"
+                            onClick={toggleRecording}
+                            className="ml-2 flex items-center space-x-1"
+                            data-testid="button-voice-input"
+                          >
+                            {isRecording ? (
+                              <>
+                                <Square className="w-3 h-3" />
+                                <span>Stop</span>
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="w-3 h-3" />
+                                <span>Voice</span>
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="What's on your mind today? How are you feeling? What happened?"
-                          className="resize-none min-h-[200px]"
-                          {...field}
-                          data-testid="input-journal-content"
-                        />
+                        <div className="relative">
+                          <Textarea
+                            placeholder={speechSupported 
+                              ? "Type here or click Voice to speak your entry..." 
+                              : "What's on your mind today? How are you feeling? What happened?"
+                            }
+                            className={`resize-none min-h-[200px] ${isRecording ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : ''}`}
+                            {...field}
+                            data-testid="input-journal-content"
+                          />
+                          {isRecording && (
+                            <div className="absolute top-2 right-2 flex items-center space-x-1 text-red-600 text-sm">
+                              <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                              <span>Recording...</span>
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
+                      {speechSupported && (
+                        <p className="text-xs text-muted-foreground">
+                          {isRecording 
+                            ? "Speak naturally. Your words will appear above as you talk."
+                            : "Click Voice button or use keyboard to add your journal entry."
+                          }
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -267,6 +395,7 @@ export default function Journal() {
                     variant="outline"
                     onClick={() => {
                       setIsAddDialogOpen(false);
+                      if (isRecording) stopRecording();
                       form.reset();
                     }}
                     className="flex-1"
@@ -426,7 +555,12 @@ export default function Journal() {
         </CardContent>
       </Card>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open && isRecording) {
+          stopRecording();
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Journal Entry</DialogTitle>
@@ -457,16 +591,59 @@ export default function Journal() {
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Content</FormLabel>
+                    <FormLabel className="flex items-center justify-between">
+                      Content
+                      {speechSupported && (
+                        <Button
+                          type="button"
+                          variant={isRecording ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={toggleRecording}
+                          className="ml-2 flex items-center space-x-1"
+                          data-testid="button-voice-input-edit"
+                        >
+                          {isRecording ? (
+                            <>
+                              <Square className="w-3 h-3" />
+                              <span>Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="w-3 h-3" />
+                              <span>Voice</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="What's on your mind?"
-                        className="resize-none min-h-[200px]"
-                        {...field}
-                        data-testid="input-edit-journal-content"
-                      />
+                      <div className="relative">
+                        <Textarea
+                          placeholder={speechSupported 
+                            ? "Type here or click Voice to speak your entry..." 
+                            : "What's on your mind?"
+                          }
+                          className={`resize-none min-h-[200px] ${isRecording ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : ''}`}
+                          {...field}
+                          data-testid="input-edit-journal-content"
+                        />
+                        {isRecording && (
+                          <div className="absolute top-2 right-2 flex items-center space-x-1 text-red-600 text-sm">
+                            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                            <span>Recording...</span>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
+                    {speechSupported && (
+                      <p className="text-xs text-muted-foreground">
+                        {isRecording 
+                          ? "Speak naturally. Your words will appear above as you talk."
+                          : "Click Voice button or use keyboard to add your journal entry."
+                        }
+                      </p>
+                    )}
                   </FormItem>
                 )}
               />
@@ -477,6 +654,7 @@ export default function Journal() {
                   variant="outline"
                   onClick={() => {
                     setIsEditDialogOpen(false);
+                    if (isRecording) stopRecording();
                     setEditingEntry(null);
                     form.reset();
                   }}
