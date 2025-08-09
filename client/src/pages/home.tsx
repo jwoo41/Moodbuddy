@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken } from "@shared/schema";
@@ -27,12 +32,29 @@ const moodLabels = {
   "very-happy": "Very Happy",
 };
 
+const medicationFormSchema = z.object({
+  name: z.string().min(1, "Medication name is required"),
+  dosage: z.string().min(1, "Dosage is required"),
+  frequency: z.string().min(1, "Frequency is required"),
+  times: z.array(z.string()).min(1, "At least one time is required"),
+});
+
+type MedicationFormData = z.infer<typeof medicationFormSchema>;
+
+const frequencies = [
+  { value: "daily", label: "Daily", times: 1 },
+  { value: "twice-daily", label: "Twice Daily", times: 2 },
+  { value: "three-times-daily", label: "Three Times Daily", times: 3 },
+];
+
 export default function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [sleepForm, setSleepForm] = useState({ bedtime: "", wakeTime: "" });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
+  const [selectedFrequency, setSelectedFrequency] = useState("");
 
   const { data: moodEntries = [] } = useQuery<MoodEntry[]>({
     queryKey: ["/api/mood"],
@@ -48,6 +70,16 @@ export default function Home() {
 
   const { data: medicationTaken = [] } = useQuery<MedicationTaken[]>({
     queryKey: ["/api/medications/taken"],
+  });
+
+  const medForm = useForm<MedicationFormData>({
+    resolver: zodResolver(medicationFormSchema),
+    defaultValues: {
+      name: "",
+      dosage: "",
+      frequency: "",
+      times: [],
+    },
   });
 
   const addMoodMutation = useMutation({
@@ -109,6 +141,30 @@ export default function Home() {
     },
   });
 
+  const addMedicationMutation = useMutation({
+    mutationFn: async (data: MedicationFormData) => {
+      const response = await apiRequest("POST", "/api/medications", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+      toast({
+        title: "Medication added",
+        description: "Your medication has been added successfully.",
+      });
+      setIsMedDialogOpen(false);
+      medForm.reset();
+      setSelectedFrequency("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add medication. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getTodaysMood = () => {
     const today = new Date().toDateString();
     return moodEntries.find(entry => 
@@ -130,6 +186,33 @@ export default function Home() {
       record.scheduledTime === scheduledTime &&
       new Date(record.takenAt).toDateString() === today
     );
+  };
+
+  const generateTimeSlots = (count: number) => {
+    const times = [];
+    const startHour = 8; // Start at 8 AM
+    const interval = Math.floor(12 / count); // Spread over 12 hours
+
+    for (let i = 0; i < count; i++) {
+      const hour = startHour + (i * interval);
+      const timeString = `${hour.toString().padStart(2, "0")}:00`;
+      times.push(timeString);
+    }
+    return times;
+  };
+
+  const handleFrequencyChange = (frequency: string) => {
+    setSelectedFrequency(frequency);
+    const freqData = frequencies.find(f => f.value === frequency);
+    if (freqData) {
+      const defaultTimes = generateTimeSlots(freqData.times);
+      medForm.setValue("frequency", frequency);
+      medForm.setValue("times", defaultTimes);
+    }
+  };
+
+  const onMedSubmit = (data: MedicationFormData) => {
+    addMedicationMutation.mutate(data);
   };
 
   const todaysMood = getTodaysMood();
@@ -269,15 +352,131 @@ export default function Home() {
       </Card>
 
       {/* Medication Tracker */}
-      {medications.length > 0 && (
-        <Card className="mb-6 max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl mr-2">💊</span>
-                Today's Medications
-              </div>
-              {!notificationsEnabled && (
+      <Card className="mb-6 max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">💊</span>
+              Today's Medications
+            </div>
+            <div className="flex items-center space-x-2">
+              <Dialog open={isMedDialogOpen} onOpenChange={setIsMedDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" data-testid="button-add-medication-home">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Medication
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add Medication</DialogTitle>
+                  </DialogHeader>
+                  
+                  <Form {...medForm}>
+                    <form onSubmit={medForm.handleSubmit(onMedSubmit)} className="space-y-4">
+                      <FormField
+                        control={medForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Medication Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Sertraline" {...field} data-testid="input-medication-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={medForm.control}
+                        name="dosage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dosage</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., 50mg" {...field} data-testid="input-medication-dosage" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={medForm.control}
+                        name="frequency"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Frequency</FormLabel>
+                            <Select onValueChange={handleFrequencyChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-medication-frequency">
+                                  <SelectValue placeholder="How often?" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {frequencies.map((freq) => (
+                                  <SelectItem key={freq.value} value={freq.value}>
+                                    {freq.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {selectedFrequency && (
+                        <div>
+                          <FormLabel>Times</FormLabel>
+                          <div className="space-y-2 mt-2">
+                            {medForm.watch("times").map((time, index) => (
+                              <Input
+                                key={index}
+                                type="time"
+                                value={time}
+                                onChange={(e) => {
+                                  const times = [...medForm.getValues("times")];
+                                  times[index] = e.target.value;
+                                  medForm.setValue("times", times);
+                                }}
+                                data-testid={`input-medication-time-${index}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex space-x-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsMedDialogOpen(false);
+                            medForm.reset();
+                            setSelectedFrequency("");
+                          }}
+                          className="flex-1"
+                          data-testid="button-cancel-medication"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={addMedicationMutation.isPending}
+                          className="flex-1"
+                          data-testid="button-save-medication"
+                        >
+                          {addMedicationMutation.isPending ? "Saving..." : "Add Medication"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+              
+              {medications.length > 0 && !notificationsEnabled && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -289,9 +488,11 @@ export default function Home() {
                   <span>Enable Reminders</span>
                 </Button>
               )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {medications.length > 0 ? (
             <div className="space-y-3">
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
@@ -408,9 +609,21 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="text-center py-8">
+              <Pill className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">No medications added yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Add your first medication to start tracking your daily doses
+              </p>
+              <Button onClick={() => setIsMedDialogOpen(true)} data-testid="button-add-first-medication">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Medication
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
