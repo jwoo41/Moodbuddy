@@ -23,6 +23,8 @@ The application follows a dashboard-centric approach where users can view aggreg
 - **User Onboarding**: Comprehensive setup flow captures contact info, emergency contacts, and alert preferences
 - **Health Pattern Monitoring**: Automatic detection of low mood patterns (5+ days) and medication non-compliance (70% adherence over 3 days)
 - **Emergency Contact Integration**: Optional alert sharing with trusted contacts for concerning health patterns
+- **Crisis Support Resources**: Added 24/7 mental health emergency hotlines (988, Crisis Text Line, international help) to landing page and main app
+- **Fixed False Alerts**: Medication adherence alerts now only trigger after medications have been tracked for at least 3 full days, preventing false alerts on first-day usage
 
 ## User Preferences
 
