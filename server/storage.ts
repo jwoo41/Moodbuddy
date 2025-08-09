@@ -272,6 +272,7 @@ export class MemStorage implements IStorage {
       dosage: medication.dosage ?? null,
       createdAt: new Date(),
       isActive: medication.isActive ?? true,
+      notificationsEnabled: medication.notificationsEnabled ?? true,
     };
     this.medications.set(id, med);
     return med;

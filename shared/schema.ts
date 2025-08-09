@@ -63,6 +63,7 @@ export const medications = pgTable("medications", {
   frequency: text("frequency").notNull(), // daily, twice-daily, weekly, etc.
   times: text("times").array().notNull(), // array of time strings like ["08:00", "20:00"]
   isActive: boolean("is_active").default(true).notNull(),
+  notificationsEnabled: boolean("notifications_enabled").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
