@@ -279,6 +279,28 @@ export default function Home() {
     },
   });
 
+  const toggleMedicationNotifications = async (medicationId: string, enabled: boolean) => {
+    try {
+      const response = await apiRequest("PUT", `/api/medications/${medicationId}`, {
+        notificationsEnabled: enabled
+      });
+      
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+        toast({
+          title: enabled ? "Notifications enabled" : "Notifications disabled",
+          description: `Medication reminders ${enabled ? 'turned on' : 'turned off'}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update notification settings",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addMedicationMutation = useMutation({
     mutationFn: async (data: MedicationFormData) => {
       // Check if we're editing an existing medication
@@ -625,13 +647,18 @@ export default function Home() {
     const newNotificationIds: number[] = [];
     
     medications.forEach(medication => {
-      medication.times?.forEach(time => {
-        console.log(`Scheduling notification for ${medication.name} at ${time}`);
-        const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage || undefined);
-        if (notificationId) {
-          newNotificationIds.push(notificationId);
-        }
-      });
+      // Only schedule notifications if they're enabled for this specific medication
+      if (medication.notificationsEnabled !== false) {
+        medication.times?.forEach(time => {
+          console.log(`Scheduling notification for ${medication.name} at ${time}`);
+          const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage || undefined);
+          if (notificationId) {
+            newNotificationIds.push(notificationId);
+          }
+        });
+      } else {
+        console.log(`Skipping notifications for ${medication.name} - disabled by user`);
+      }
     });
     
     console.log(`Scheduled ${newNotificationIds.length} medication notifications`);
@@ -1611,6 +1638,27 @@ export default function Home() {
                   <div className="text-center mt-4">
                     <div className="text-sm text-gray-500">
                       {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
+                    </div>
+                    <div className="flex items-center justify-center mt-2 space-x-2">
+                      <Bell className={`w-4 h-4 ${med.notificationsEnabled ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={med.notificationsEnabled ?? true}
+                          onChange={(e) => toggleMedicationNotifications(med.id, e.target.checked)}
+                          className="sr-only"
+                        />
+                        <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          med.notificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                        }`}>
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            med.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </div>
+                      </label>
+                      <span className="text-xs text-gray-500">
+                        {med.notificationsEnabled ? 'Reminders on' : 'Reminders off'}
+                      </span>
                     </div>
                   </div>
                 </div>
