@@ -1,6 +1,7 @@
 import {
+  users,
   type User,
-  type InsertUser,
+  type UpsertUser,
   type MoodEntry,
   type InsertMoodEntry,
   type SleepEntry,
@@ -12,13 +13,14 @@ import {
   type JournalEntry,
   type InsertJournalEntry,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
-  // Users
+  // User operations for Replit Auth
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
 
   // Mood entries
   getMoodEntries(userId: string, limit?: number): Promise<MoodEntry[]>;
@@ -71,10 +73,12 @@ export class MemStorage implements IStorage {
     this.journalEntries = new Map();
 
     // Create a default user for demo purposes
-    this.createUser({
-      username: "demo",
-      password: "demo",
-      name: "Sarah",
+    this.upsertUser({
+      id: "demo-user",
+      email: "demo@mindflow.app",
+      firstName: "Sarah",
+      lastName: "Demo",
+      profileImageUrl: null,
     });
   }
 
@@ -83,15 +87,15 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const id = userData.id || randomUUID();
+    const now = new Date();
+    const user: User = { 
+      ...userData, 
+      id,
+      createdAt: userData.createdAt || now,
+      updatedAt: now
+    };
     this.users.set(id, user);
     return user;
   }
@@ -291,4 +295,55 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Database storage implementation for Replit Auth
+export class DatabaseStorage implements IStorage {
+  // User operations for Replit Auth
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // All other methods would use database queries...
+  // For now, throwing errors to indicate they need implementation
+  async getMoodEntries(): Promise<MoodEntry[]> { throw new Error("Not implemented for database yet"); }
+  async createMoodEntry(): Promise<MoodEntry> { throw new Error("Not implemented for database yet"); }
+  async getMoodEntryById(): Promise<MoodEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateMoodEntry(): Promise<MoodEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteMoodEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+  async getSleepEntries(): Promise<SleepEntry[]> { throw new Error("Not implemented for database yet"); }
+  async createSleepEntry(): Promise<SleepEntry> { throw new Error("Not implemented for database yet"); }
+  async getSleepEntryById(): Promise<SleepEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateSleepEntry(): Promise<SleepEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteSleepEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+  async getMedications(): Promise<Medication[]> { throw new Error("Not implemented for database yet"); }
+  async createMedication(): Promise<Medication> { throw new Error("Not implemented for database yet"); }
+  async getMedicationById(): Promise<Medication | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateMedication(): Promise<Medication | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteMedication(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+  async getMedicationTakenRecords(): Promise<MedicationTaken[]> { throw new Error("Not implemented for database yet"); }
+  async createMedicationTakenRecord(): Promise<MedicationTaken> { throw new Error("Not implemented for database yet"); }
+  async getMedicationTakenByMedication(): Promise<MedicationTaken[]> { throw new Error("Not implemented for database yet"); }
+  async getJournalEntries(): Promise<JournalEntry[]> { throw new Error("Not implemented for database yet"); }
+  async createJournalEntry(): Promise<JournalEntry> { throw new Error("Not implemented for database yet"); }
+  async getJournalEntryById(): Promise<JournalEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateJournalEntry(): Promise<JournalEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteJournalEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+}
+
+// Use MemStorage for now, switch to DatabaseStorage later
 export const storage = new MemStorage();

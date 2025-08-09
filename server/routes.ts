@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import {
   insertMoodEntrySchema,
   insertSleepEntrySchema,
@@ -10,8 +11,23 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // For demo purposes, we'll use a hardcoded user ID
-  const DEMO_USER_ID = Array.from(await storage["users"].values())[0]?.id || "demo-user";
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // For demo purposes, we'll use a hardcoded user ID (will switch to auth later)
+  const DEMO_USER_ID = "demo-user";
 
   // Mood entries
   app.get("/api/mood", async (req, res) => {
