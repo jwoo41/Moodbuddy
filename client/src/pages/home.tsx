@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken, ExerciseEntry, WeightEntry } from "@shared/schema";
 import OnboardingModal from "@/components/onboarding/onboarding-modal";
+import MoodChart from "@/components/mood/mood-chart";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -923,6 +924,33 @@ export default function Home() {
           )}
         </CardContent>
       </Card>
+
+      {/* Mood Trend Mini Chart */}
+      {moodEntries && moodEntries.length > 1 && (
+        <Card className="mb-6 max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-2xl mr-2">📈</span>
+                Mood Trends
+              </div>
+              <Link href="/mood">
+                <Button size="sm" variant="outline" data-testid="button-view-full-mood-chart">
+                  View Details
+                </Button>
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <MoodChart moodEntries={moodEntries.slice(0, 7)} />
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Your mood patterns over the last week
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sleep Quick Logger */}
       <Card className="mb-6 max-w-2xl mx-auto">

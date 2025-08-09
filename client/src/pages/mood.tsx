@@ -13,6 +13,8 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import MoodModal from "@/components/mood/mood-modal";
+import MoodChart from "@/components/mood/mood-chart";
+import MoodInsights from "@/components/mood/mood-insights";
 import { MoodEntry } from "@shared/schema";
 
 const moodFormSchema = z.object({
@@ -281,8 +283,25 @@ export default function Mood() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card>
+      {/* Mood Trend Visualization */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
+            Mood Trends
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Visualize your emotional patterns over the past two weeks
+          </p>
+        </CardHeader>
+        <CardContent>
+          <MoodChart moodEntries={moodEntries} />
+        </CardContent>
+      </Card>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
           <CardHeader>
             <CardTitle>Recent Entries</CardTitle>
           </CardHeader>
@@ -355,6 +374,12 @@ export default function Mood() {
           </CardContent>
         </Card>
         
+        </div>
+        
+        <MoodInsights moodEntries={moodEntries} />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Mood Distribution</CardTitle>
