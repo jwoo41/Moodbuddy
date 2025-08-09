@@ -95,6 +95,8 @@ export default function Home() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [bedtimeNotificationEnabled, setBedtimeNotificationEnabled] = useState(false);
   const [bedtimeReminderTime, setBedtimeReminderTime] = useState("22:00");
+  const [wakeUpNotificationEnabled, setWakeUpNotificationEnabled] = useState(false);
+  const [wakeUpReminderTime, setWakeUpReminderTime] = useState("07:00");
   const [scheduledNotifications, setScheduledNotifications] = useState<number[]>([]);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -409,8 +411,11 @@ export default function Home() {
       if (bedtimeNotificationEnabled) {
         scheduleBedtimeNotification();
       }
+      if (wakeUpNotificationEnabled) {
+        scheduleWakeUpNotification();
+      }
     }
-  }, [medications, notificationsEnabled, bedtimeNotificationEnabled, bedtimeReminderTime]);
+  }, [medications, notificationsEnabled, bedtimeNotificationEnabled, bedtimeReminderTime, wakeUpNotificationEnabled, wakeUpReminderTime]);
 
   const setupNotifications = async () => {
     if ("Notification" in window) {
@@ -502,6 +507,50 @@ export default function Home() {
       
       // Schedule the next bedtime notification for tomorrow
       scheduleBedtimeNotification();
+    }, timeUntilNotification);
+    
+    setScheduledNotifications(prev => [...prev, timeoutId]);
+  };
+
+  const scheduleWakeUpNotification = () => {
+    if (!wakeUpNotificationEnabled || !notificationsEnabled) return;
+    
+    const now = new Date();
+    const [hours, minutes] = wakeUpReminderTime.split(':').map(Number);
+    
+    // Create notification time for today
+    const notificationTime = new Date();
+    notificationTime.setHours(hours, minutes, 0, 0);
+    
+    // If time has passed today, schedule for tomorrow
+    if (notificationTime <= now) {
+      notificationTime.setDate(notificationTime.getDate() + 1);
+    }
+    
+    const timeUntilNotification = notificationTime.getTime() - now.getTime();
+    
+    const timeoutId = window.setTimeout(() => {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification(`⏰ Good Morning! Time to Wake Up`, {
+          body: `Start your day right! Remember to log your mood and check your medications.`,
+          icon: '/icon-192.svg',
+          tag: 'wakeup-reminder',
+          badge: '/icon-192.svg',
+          requireInteraction: true,
+        });
+
+        // Auto-close notification after 45 seconds
+        setTimeout(() => notification.close(), 45000);
+
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      }
+      
+      // Schedule the next wake-up notification for tomorrow
+      scheduleWakeUpNotification();
     }, timeUntilNotification);
     
     setScheduledNotifications(prev => [...prev, timeoutId]);
@@ -747,10 +796,35 @@ export default function Home() {
             </div>
           ) : null}
           
-          {/* Sleep form - always show if no sleep logged or editing */}
-          {/* Bedtime Notification Settings */}
+          {/* Notification Settings Panel */}
+          {!notificationsEnabled && (
+            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Bell className="w-5 h-5 text-yellow-600" />
+                  <div>
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Enable Notifications</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-300">Get reminders for medications, bedtime, and wake-up times</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={setupNotifications}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  data-testid="button-enable-notifications"
+                >
+                  Enable
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Sleep & Notification Settings */}
           {notificationsEnabled && (
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border">
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border">
+              <div className="text-sm font-medium mb-3 flex items-center">
+                <Bell className="w-4 h-4 mr-2 text-blue-600" />
+                Sleep Notifications
+              </div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <input
@@ -778,6 +852,37 @@ export default function Home() {
               {bedtimeNotificationEnabled && (
                 <p className="text-xs text-muted-foreground">
                   We'll remind you to wind down for bed at {bedtimeReminderTime}
+                </p>
+              )}
+              
+              {/* Wake-up Notification Settings */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="wakeup-notifications"
+                    checked={wakeUpNotificationEnabled}
+                    onChange={(e) => setWakeUpNotificationEnabled(e.target.checked)}
+                    className="rounded"
+                    data-testid="checkbox-wakeup-notifications"
+                  />
+                  <label htmlFor="wakeup-notifications" className="text-sm font-medium">
+                    ⏰ Wake-up Reminders
+                  </label>
+                </div>
+                {wakeUpNotificationEnabled && (
+                  <Input
+                    type="time"
+                    value={wakeUpReminderTime}
+                    onChange={(e) => setWakeUpReminderTime(e.target.value)}
+                    className="w-24 h-8 text-sm"
+                    data-testid="input-wakeup-reminder-time"
+                  />
+                )}
+              </div>
+              {wakeUpNotificationEnabled && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  We'll wake you up at {wakeUpReminderTime} to start your day right
                 </p>
               )}
             </div>
@@ -992,6 +1097,18 @@ export default function Home() {
               Today's Medications
             </div>
             <div className="flex items-center space-x-2">
+              {!notificationsEnabled && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={setupNotifications}
+                  className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                  data-testid="button-enable-med-notifications"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Enable Reminders
+                </Button>
+              )}
               <Dialog open={isMedDialogOpen} onOpenChange={setIsMedDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline" data-testid="button-add-medication-home">
@@ -1145,12 +1262,36 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {notificationsEnabled && medications.length > 0 && (
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+              <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                <Bell className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Medication reminders are active for {medications.length} medication{medications.length > 1 ? 's' : ''}
+                </span>
+              </div>
+              <p className="text-xs text-green-600 dark:text-green-300 mt-1">
+                You'll receive notifications at your scheduled times
+              </p>
+            </div>
+          )}
+
           {medications.length > 0 ? (
             <div className="space-y-3">
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-medium">{med.name} - {med.dosage}</div>
+                    <div>
+                      <div className="font-medium">{med.name} - {med.dosage}</div>
+                      {notificationsEnabled && (
+                        <div className="flex items-center space-x-1 mt-1">
+                          <Bell className="w-3 h-3 text-blue-500" />
+                          <span className="text-xs text-blue-600 dark:text-blue-400">
+                            Reminders active
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     <Button
                       size="sm"
                       variant="outline"
