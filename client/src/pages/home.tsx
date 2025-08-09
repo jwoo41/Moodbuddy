@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +61,28 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAchievements, setPendingAchievements] = useState<any[]>([]);
+  const achievementTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to handle achievements consistently
+  const handleAchievements = (data: any) => {
+    if (data.gamification?.newAchievements?.length > 0) {
+      // Clear any existing timeout to prevent duplicate processing
+      if (achievementTimeoutRef.current) {
+        clearTimeout(achievementTimeoutRef.current);
+      }
+      
+      // Small delay to batch multiple achievements from simultaneous actions
+      achievementTimeoutRef.current = setTimeout(() => {
+        setPendingAchievements(prev => {
+          const existingIds = new Set(prev.map(a => a.id));
+          const newAchievements = data.gamification.newAchievements.filter(
+            (achievement: any) => !existingIds.has(achievement.id)
+          );
+          return [...prev, ...newAchievements];
+        });
+      }, 100);
+    }
+  };
 
   // Check if user needs onboarding
   useEffect(() => {
@@ -178,9 +200,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
       
       // Handle achievements if returned from API
-      if (data.gamification?.newAchievements?.length > 0) {
-        setPendingAchievements(data.gamification.newAchievements);
-      }
+      handleAchievements(data);
       
       let description = todaysMood ? "Your mood has been updated." : "Thanks for sharing how you're feeling!";
       if (data.gamification?.streak > 1) {
@@ -384,11 +404,24 @@ export default function Home() {
         return response.json();
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/exercise"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
+      
+      // Handle achievements if returned from API
+      handleAchievements(data);
+      
+      let description = "Your exercise has been recorded for today.";
+      if (data.gamification?.streak > 1) {
+        description += ` 🔥 ${data.gamification.streak} day streak!`;
+      }
+      if (data.gamification?.isNewRecord) {
+        description += " 🎉 New record!";
+      }
+      
       toast({
         title: "Exercise logged",
-        description: "Your exercise has been recorded for today.",
+        description,
       });
     },
   });
@@ -401,11 +434,24 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/weight", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
+      
+      // Handle achievements if returned from API
+      handleAchievements(data);
+      
+      let description = "Your weight has been recorded successfully.";
+      if (data.gamification?.streak > 1) {
+        description += ` 🔥 ${data.gamification.streak} day streak!`;
+      }
+      if (data.gamification?.isNewRecord) {
+        description += " 🎉 New record!";
+      }
+      
       toast({
         title: "Weight logged",
-        description: "Your weight has been recorded successfully.",
+        description,
       });
       setWeightForm({ weight: "", unit: "lbs", notes: "" });
     },
@@ -417,8 +463,13 @@ export default function Home() {
       const response = await apiRequest("PUT", `/api/weight/${id}`, updateData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
+      
+      // Handle achievements if returned from API (weight updates can also earn achievements)
+      handleAchievements(data);
+      
       toast({
         title: "Weight updated",
         description: "Your weight has been updated successfully.",
@@ -1871,7 +1922,14 @@ export default function Home() {
       {pendingAchievements.length > 0 && (
         <AchievementToast 
           achievements={pendingAchievements} 
-          onClose={() => setPendingAchievements([])} 
+          onClose={() => {
+            // Clear pending achievements and any pending timeout
+            if (achievementTimeoutRef.current) {
+              clearTimeout(achievementTimeoutRef.current);
+              achievementTimeoutRef.current = null;
+            }
+            setPendingAchievements([]);
+          }} 
         />
       )}
     </div>
