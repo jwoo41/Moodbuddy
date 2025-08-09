@@ -75,7 +75,7 @@ export class MemStorage implements IStorage {
     // Create a default user for demo purposes
     this.upsertUser({
       id: "demo-user",
-      email: "demo@mindflow.app",
+      email: "demo@mindwell.app",
       firstName: "Sarah",
       lastName: "Demo",
       profileImageUrl: null,
@@ -91,9 +91,12 @@ export class MemStorage implements IStorage {
     const id = userData.id || randomUUID();
     const now = new Date();
     const user: User = { 
-      ...userData, 
       id,
-      createdAt: userData.createdAt || now,
+      email: userData.email ?? null,
+      firstName: userData.firstName ?? null,
+      lastName: userData.lastName ?? null,
+      profileImageUrl: userData.profileImageUrl ?? null,
+      createdAt: userData.createdAt ?? now,
       updatedAt: now
     };
     this.users.set(id, user);

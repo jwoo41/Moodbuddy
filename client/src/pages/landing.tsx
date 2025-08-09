@@ -43,7 +43,7 @@ export default function Landing() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Brain className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">MindFlow</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">MindWell</h1>
           </div>
           <Button 
             onClick={() => window.location.href = "/api/login"}
@@ -103,7 +103,7 @@ export default function Landing() {
             Ready to take control of your mental health?
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Join thousands of users who are already improving their wellbeing with MindFlow.
+            Join thousands of users who are already improving their wellbeing with MindWell.
           </p>
           <Button 
             size="lg"
@@ -118,7 +118,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 text-center text-gray-600 dark:text-gray-400">
-        <p>&copy; 2024 MindFlow. Supporting your mental wellness journey.</p>
+        <p>&copy; 2024 MindWell. Supporting your mental wellness journey.</p>
       </footer>
     </div>
   );
