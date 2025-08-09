@@ -12,6 +12,10 @@ import {
   type InsertMedicationTaken,
   type JournalEntry,
   type InsertJournalEntry,
+  type ExerciseEntry,
+  type InsertExerciseEntry,
+  type WeightEntry,
+  type InsertWeightEntry,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -54,6 +58,20 @@ export interface IStorage {
   getJournalEntryById(id: string): Promise<JournalEntry | undefined>;
   updateJournalEntry(id: string, entry: Partial<InsertJournalEntry>): Promise<JournalEntry | undefined>;
   deleteJournalEntry(id: string): Promise<boolean>;
+
+  // Exercise entries
+  getExerciseEntries(userId: string, limit?: number): Promise<ExerciseEntry[]>;
+  createExerciseEntry(entry: InsertExerciseEntry): Promise<ExerciseEntry>;
+  getExerciseEntryById(id: string): Promise<ExerciseEntry | undefined>;
+  updateExerciseEntry(id: string, entry: Partial<InsertExerciseEntry>): Promise<ExerciseEntry | undefined>;
+  deleteExerciseEntry(id: string): Promise<boolean>;
+
+  // Weight entries
+  getWeightEntries(userId: string, limit?: number): Promise<WeightEntry[]>;
+  createWeightEntry(entry: InsertWeightEntry): Promise<WeightEntry>;
+  getWeightEntryById(id: string): Promise<WeightEntry | undefined>;
+  updateWeightEntry(id: string, entry: Partial<InsertWeightEntry>): Promise<WeightEntry | undefined>;
+  deleteWeightEntry(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -63,6 +81,8 @@ export class MemStorage implements IStorage {
   private medications: Map<string, Medication>;
   private medicationTaken: Map<string, MedicationTaken>;
   private journalEntries: Map<string, JournalEntry>;
+  private exerciseEntries: Map<string, ExerciseEntry>;
+  private weightEntries: Map<string, WeightEntry>;
 
   constructor() {
     this.users = new Map();
@@ -71,6 +91,8 @@ export class MemStorage implements IStorage {
     this.medications = new Map();
     this.medicationTaken = new Map();
     this.journalEntries = new Map();
+    this.exerciseEntries = new Map();
+    this.weightEntries = new Map();
 
     // Create a default user for demo purposes
     this.upsertUser({
@@ -301,6 +323,80 @@ export class MemStorage implements IStorage {
   async deleteJournalEntry(id: string): Promise<boolean> {
     return this.journalEntries.delete(id);
   }
+
+  // Exercise entries
+  async getExerciseEntries(userId: string, limit = 30): Promise<ExerciseEntry[]> {
+    const entries = Array.from(this.exerciseEntries.values())
+      .filter((entry) => entry.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+    return entries;
+  }
+
+  async createExerciseEntry(entry: InsertExerciseEntry): Promise<ExerciseEntry> {
+    const id = randomUUID();
+    const exerciseEntry: ExerciseEntry = {
+      ...entry,
+      id,
+      createdAt: new Date(),
+      notes: entry.notes || null,
+    };
+    this.exerciseEntries.set(id, exerciseEntry);
+    return exerciseEntry;
+  }
+
+  async getExerciseEntryById(id: string): Promise<ExerciseEntry | undefined> {
+    return this.exerciseEntries.get(id);
+  }
+
+  async updateExerciseEntry(id: string, entry: Partial<InsertExerciseEntry>): Promise<ExerciseEntry | undefined> {
+    const existing = this.exerciseEntries.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...entry };
+    this.exerciseEntries.set(id, updated);
+    return updated;
+  }
+
+  async deleteExerciseEntry(id: string): Promise<boolean> {
+    return this.exerciseEntries.delete(id);
+  }
+
+  // Weight entries
+  async getWeightEntries(userId: string, limit = 50): Promise<WeightEntry[]> {
+    const entries = Array.from(this.weightEntries.values())
+      .filter((entry) => entry.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+    return entries;
+  }
+
+  async createWeightEntry(entry: InsertWeightEntry): Promise<WeightEntry> {
+    const id = randomUUID();
+    const weightEntry: WeightEntry = {
+      ...entry,
+      id,
+      createdAt: new Date(),
+      notes: entry.notes || null,
+    };
+    this.weightEntries.set(id, weightEntry);
+    return weightEntry;
+  }
+
+  async getWeightEntryById(id: string): Promise<WeightEntry | undefined> {
+    return this.weightEntries.get(id);
+  }
+
+  async updateWeightEntry(id: string, entry: Partial<InsertWeightEntry>): Promise<WeightEntry | undefined> {
+    const existing = this.weightEntries.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...entry };
+    this.weightEntries.set(id, updated);
+    return updated;
+  }
+
+  async deleteWeightEntry(id: string): Promise<boolean> {
+    return this.weightEntries.delete(id);
+  }
 }
 
 // Database storage implementation for Replit Auth
@@ -351,6 +447,20 @@ export class DatabaseStorage implements IStorage {
   async getJournalEntryById(): Promise<JournalEntry | undefined> { throw new Error("Not implemented for database yet"); }
   async updateJournalEntry(): Promise<JournalEntry | undefined> { throw new Error("Not implemented for database yet"); }
   async deleteJournalEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+
+  // Exercise entries - Database implementation placeholders
+  async getExerciseEntries(): Promise<ExerciseEntry[]> { throw new Error("Not implemented for database yet"); }
+  async createExerciseEntry(): Promise<ExerciseEntry> { throw new Error("Not implemented for database yet"); }
+  async getExerciseEntryById(): Promise<ExerciseEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateExerciseEntry(): Promise<ExerciseEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteExerciseEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+
+  // Weight entries - Database implementation placeholders
+  async getWeightEntries(): Promise<WeightEntry[]> { throw new Error("Not implemented for database yet"); }
+  async createWeightEntry(): Promise<WeightEntry> { throw new Error("Not implemented for database yet"); }
+  async getWeightEntryById(): Promise<WeightEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async updateWeightEntry(): Promise<WeightEntry | undefined> { throw new Error("Not implemented for database yet"); }
+  async deleteWeightEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
 }
 
 // Use MemStorage for now, switch to DatabaseStorage later

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell } from "lucide-react";
+import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell, Activity, Weight } from "lucide-react";
 import { Link } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken } from "@shared/schema";
+import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken, ExerciseEntry, WeightEntry } from "@shared/schema";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -117,6 +117,14 @@ export default function Home() {
 
   const { data: medicationTaken = [] } = useQuery<MedicationTaken[]>({
     queryKey: ["/api/medications/taken"],
+  });
+
+  const { data: exerciseEntries = [] } = useQuery<ExerciseEntry[]>({
+    queryKey: ['/api/exercise'],
+  });
+
+  const { data: weightEntries = [] } = useQuery<WeightEntry[]>({
+    queryKey: ['/api/weight'],
   });
 
   const medForm = useForm<MedicationFormData>({
@@ -272,6 +280,55 @@ export default function Home() {
       new Date(entry.createdAt).toDateString() === today
     );
   };
+
+  const getTodaysExercise = () => {
+    const today = new Date().toDateString();
+    return exerciseEntries.find(entry => 
+      new Date(entry.createdAt).toDateString() === today
+    );
+  };
+
+  // Exercise mutations
+  const addExerciseMutation = useMutation({
+    mutationFn: async (data: { exercised: boolean; notes?: string }) => {
+      const todaysExercise = getTodaysExercise();
+      
+      if (todaysExercise) {
+        // Update existing exercise entry
+        const response = await apiRequest("PUT", `/api/exercise/${todaysExercise.id}`, data);
+        return response.json();
+      } else {
+        // Create new exercise entry
+        const response = await apiRequest("POST", "/api/exercise", data);
+        return response.json();
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/exercise"] });
+      toast({
+        title: "Exercise logged",
+        description: "Your exercise has been recorded for today.",
+      });
+    },
+  });
+
+  // Weight state and mutations
+  const [weightForm, setWeightForm] = useState({ weight: "", unit: "lbs", notes: "" });
+
+  const addWeightMutation = useMutation({
+    mutationFn: async (data: { weight: number; unit: string; notes?: string }) => {
+      const response = await apiRequest("POST", "/api/weight", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
+      toast({
+        title: "Weight logged",
+        description: "Your weight has been recorded successfully.",
+      });
+      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+    },
+  });
 
   const isMedicationTakenToday = (medicationId: string, scheduledTime: string) => {
     const today = new Date().toDateString();
@@ -764,6 +821,152 @@ export default function Home() {
               </div>
             </div>
           )}
+        </CardHeader>
+      </Card>
+
+      {/* Exercise Tracker */}
+      <Card className="mb-6 max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Activity className="w-6 h-6 mr-2 text-green-600" />
+            Exercise Today
+          </CardTitle>
+          
+          {/* Exercise Status Display */}
+          {getTodaysExercise() && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">
+                    {getTodaysExercise()?.exercised ? "💪" : "😴"}
+                  </span>
+                  <div>
+                    <p className="font-medium text-green-900 dark:text-green-100">
+                      {getTodaysExercise()?.exercised ? "Great job! You exercised today" : "No exercise logged today"}
+                    </p>
+                    <p className="text-sm text-green-600 dark:text-green-300">
+                      Logged at {new Date(getTodaysExercise()!.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const current = getTodaysExercise();
+                    if (current) {
+                      addExerciseMutation.mutate({ 
+                        exercised: !current.exercised,
+                        notes: current.notes || undefined
+                      });
+                    }
+                  }}
+                  data-testid="button-toggle-exercise"
+                >
+                  {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* Exercise Quick Log Buttons */}
+          {!getTodaysExercise() && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Did you exercise today? Physical activity is great for mental health! 💪
+              </p>
+              
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
+                  disabled={addExerciseMutation.isPending}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-exercise-yes"
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="text-2xl mr-2">👍</span>
+                    <span className="font-medium">Yes!</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
+                  disabled={addExerciseMutation.isPending}
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-exercise-no"
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="text-2xl mr-2">👎</span>
+                    <span>Not Today</span>
+                  </div>
+                </Button>
+              </div>
+              
+              {addExerciseMutation.isPending && (
+                <p className="text-sm text-center text-muted-foreground">
+                  💪 Logging exercise...
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Weight Tracking Section */}
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <Weight className="w-5 h-5 mr-2 text-blue-600" />
+                <span className="font-medium">Weight Tracking</span>
+              </div>
+              {weightEntries.length > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  Last: {weightEntries[0]?.weight / 10} {weightEntries[0]?.unit} 
+                  ({new Date(weightEntries[0]?.createdAt).toLocaleDateString()})
+                </span>
+              )}
+            </div>
+            
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="Enter weight"
+                  value={weightForm.weight}
+                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
+                  data-testid="input-weight"
+                />
+              </div>
+              <Select
+                value={weightForm.unit}
+                onValueChange={(value) => setWeightForm({...weightForm, unit: value})}
+              >
+                <SelectTrigger className="w-20" data-testid="select-weight-unit">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lbs">lbs</SelectItem>
+                  <SelectItem value="kg">kg</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => {
+                  if (weightForm.weight) {
+                    addWeightMutation.mutate({
+                      weight: Math.round(parseFloat(weightForm.weight) * 10), // Store as integer (e.g., 1505 for 150.5)
+                      unit: weightForm.unit,
+                      notes: weightForm.notes || undefined
+                    });
+                  }
+                }}
+                disabled={!weightForm.weight || addWeightMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                data-testid="button-log-weight"
+              >
+                {addWeightMutation.isPending ? "⚖️ Saving..." : "⚖️ Log Weight"}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
       </Card>
 

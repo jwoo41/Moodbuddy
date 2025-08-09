@@ -15,6 +15,10 @@ The application follows a dashboard-centric approach where users can view aggreg
 - Added personalized header with user's display name and profile management
 - Improved medication tracking UI with large thumbs up/down buttons and clear labeling
 - Enhanced database schema to support mood descriptions, sleep descriptors, and user display names
+- Added comprehensive notification system with medication reminders and optional bedtime notifications
+- Implemented exercise tracking widget with yes/no logging and visual feedback (💪/😴 emojis)
+- Added weight tracking functionality with lbs/kg unit support and historical tracking
+- Enhanced sleep tracking interface with simplified bedtime (🛏️) and wake-up time (⏰) inputs
 
 ## User Preferences
 
@@ -62,6 +66,8 @@ The application uses a PostgreSQL database with the following core entities:
 - **Medications**: User medication management with dosage and scheduling information
 - **Medication Taken**: Adherence tracking for scheduled medications
 - **Journal Entries**: Free-form text entries with optional titles and timestamps
+- **Exercise Entries**: Boolean exercise tracking with optional notes and timestamps
+- **Weight Entries**: Weight tracking with unit support (lbs/kg), optional notes, and timestamps
 
 ### Data Storage Strategy
 - **Primary Database**: PostgreSQL via Neon serverless for scalable cloud hosting
