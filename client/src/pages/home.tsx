@@ -90,9 +90,7 @@ export default function Home() {
   });
   const [sleepForm, setSleepForm] = useState({ 
     bedtime: "", 
-    wakeTime: "", 
-    bedtimeDescriptor: "", 
-    wakeupDescriptor: "" 
+    wakeTime: ""
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
@@ -152,9 +150,7 @@ export default function Home() {
   const addSleepMutation = useMutation({
     mutationFn: async (data: { 
       bedtime: string; 
-      wakeTime: string; 
-      bedtimeDescriptor?: string; 
-      wakeupDescriptor?: string; 
+      wakeTime: string;
     }) => {
       // Validate input
       if (!data.bedtime || !data.wakeTime) {
@@ -181,8 +177,6 @@ export default function Home() {
         wakeTime,
         hoursSlept,
         quality: "good", // Default quality for quick logging
-        bedtimeDescriptor: data.bedtimeDescriptor || null,
-        wakeupDescriptor: data.wakeupDescriptor || null,
       };
 
       if (todaysSleep) {
@@ -544,21 +538,13 @@ export default function Home() {
           <CardTitle className="flex items-center">
             <span className="text-2xl mr-2">😴</span>
             Sleep Tracker
-            <span className="ml-2 text-sm text-muted-foreground font-normal">🕐 Track your bedtime & wake up time</span>
           </CardTitle>
           {todaysSleep ? (
             <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
                 ✅ Sleep logged: {todaysSleep.hoursSlept}h
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                {todaysSleep.bedtimeDescriptor && (
-                  <p>Bedtime: {todaysSleep.bedtimeDescriptor}</p>
-                )}
-                {todaysSleep.wakeupDescriptor && (
-                  <p>Wake-up: {todaysSleep.wakeupDescriptor}</p>
-                )}
-              </div>
+
               <Button
                 size="sm"
                 variant="outline"
@@ -568,9 +554,7 @@ export default function Home() {
                   const wakeTime = new Date(todaysSleep.wakeTime);
                   setSleepForm({
                     bedtime: `${bedtime.getHours().toString().padStart(2, '0')}:${bedtime.getMinutes().toString().padStart(2, '0')}`,
-                    wakeTime: `${wakeTime.getHours().toString().padStart(2, '0')}:${wakeTime.getMinutes().toString().padStart(2, '0')}`,
-                    bedtimeDescriptor: todaysSleep.bedtimeDescriptor || '',
-                    wakeupDescriptor: todaysSleep.wakeupDescriptor || ''
+                    wakeTime: `${wakeTime.getHours().toString().padStart(2, '0')}:${wakeTime.getMinutes().toString().padStart(2, '0')}`
                   });
                 }}
                 data-testid="button-edit-sleep"
@@ -587,7 +571,6 @@ export default function Home() {
                 <div>
                   <label className="text-sm font-medium flex items-center mb-2">
                     🛏️ Bedtime
-                    <span className="ml-2 text-xs text-muted-foreground">(When you went to bed)</span>
                   </label>
                   <Input
                     type="time"
@@ -599,7 +582,6 @@ export default function Home() {
                 <div>
                   <label className="text-sm font-medium flex items-center mb-2">
                     ⏰ Wake Up Time
-                    <span className="ml-2 text-xs text-muted-foreground">(When you woke up)</span>
                   </label>
                   <Input
                     type="time"
@@ -609,30 +591,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium flex items-center mb-2">
-                    😴 Bedtime Feeling
-                  </label>
-                  <Input
-                    placeholder="How did you feel going to bed?"
-                    value={sleepForm.bedtimeDescriptor}
-                    onChange={(e) => setSleepForm({...sleepForm, bedtimeDescriptor: e.target.value})}
-                    data-testid="input-bedtime-descriptor"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium flex items-center mb-2">
-                    🌅 Wake Up Feeling
-                  </label>
-                  <Input
-                    placeholder="How did you feel waking up?"
-                    value={sleepForm.wakeupDescriptor}
-                    onChange={(e) => setSleepForm({...sleepForm, wakeupDescriptor: e.target.value})}
-                    data-testid="input-wakeup-descriptor"
-                  />
-                </div>
-              </div>
+
               
               <div className="flex space-x-2">
                 <Button 
@@ -647,7 +606,7 @@ export default function Home() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setSleepForm({ bedtime: '', wakeTime: '', bedtimeDescriptor: '', wakeupDescriptor: '' });
+                      setSleepForm({ bedtime: '', wakeTime: '' });
                     }}
                     data-testid="button-cancel-sleep-edit"
                   >
