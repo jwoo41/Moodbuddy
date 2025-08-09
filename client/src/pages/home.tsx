@@ -418,26 +418,71 @@ export default function Home() {
   }, [medications, notificationsEnabled, bedtimeNotificationEnabled, bedtimeReminderTime, wakeUpNotificationEnabled, wakeUpReminderTime]);
 
   const setupNotifications = async () => {
-    if ("Notification" in window) {
+    if (!("Notification" in window)) {
+      toast({
+        title: "Notifications not supported",
+        description: "Your browser doesn't support notifications. Try using Chrome, Firefox, or Safari.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
         setNotificationsEnabled(true);
         scheduleAllMedicationNotifications();
         toast({
           title: "Notifications enabled",
-          description: "You can now set up medication and bedtime reminders",
+          description: "You'll now receive reminders for medications and sleep times",
         });
       } else if (permission === "denied") {
         toast({
           title: "Notifications blocked",
-          description: "Please enable notifications in your browser settings to receive reminders",
+          description: "To enable: Click the lock/bell icon in your address bar → Allow notifications → Refresh page",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Notifications permission needed",
+          description: "Please allow notifications when prompted to receive reminders",
           variant: "destructive",
         });
       }
+    } catch (error) {
+      console.error('Notification setup error:', error);
+      toast({
+        title: "Notification setup failed",
+        description: "Browser may have blocked the request. Try: Settings → Site Permissions → Notifications → Allow",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Test notification functionality
+  const testNotification = () => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      const notification = new Notification("🔔 Test Notification", {
+        body: "Notifications are working! You'll receive reminders like this.",
+        icon: '/icon-192.svg',
+        tag: 'test-notification',
+      });
+
+      setTimeout(() => notification.close(), 5000);
+      
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      toast({
+        title: "Test notification sent",
+        description: "Check if you received the notification",
+      });
     } else {
       toast({
-        title: "Notifications not supported",
-        description: "Your browser doesn't support notifications",
+        title: "Cannot test notifications",
+        description: "Please enable notifications first",
         variant: "destructive",
       });
     }
@@ -767,9 +812,23 @@ export default function Home() {
       {/* Sleep Quick Logger */}
       <Card className="mb-6 max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="text-2xl mr-2">😴</span>
-            Sleep Tracker
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-2xl mr-2">😴</span>
+              Sleep Tracker
+            </div>
+            {!notificationsEnabled && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={setupNotifications}
+                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                data-testid="button-enable-sleep-notifications"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Enable Reminders
+              </Button>
+            )}
           </CardTitle>
           {todaysSleep ? (
             <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
@@ -796,34 +855,28 @@ export default function Home() {
             </div>
           ) : null}
           
-          {/* Notification Settings Panel */}
-          {!notificationsEnabled && (
-            <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Bell className="w-5 h-5 text-yellow-600" />
-                  <div>
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Enable Notifications</p>
-                    <p className="text-sm text-yellow-600 dark:text-yellow-300">Get reminders for medications, bedtime, and wake-up times</p>
-                  </div>
+
+
+          {/* Sleep Notification Settings */}
+          {notificationsEnabled && (
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                  <Bell className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    Sleep notifications are active
+                  </span>
                 </div>
                 <Button
-                  onClick={setupNotifications}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  data-testid="button-enable-notifications"
+                  size="sm"
+                  variant="outline"
+                  onClick={testNotification}
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                  data-testid="button-test-notification"
                 >
-                  Enable
+                  <Bell className="w-3 h-3 mr-1" />
+                  Test
                 </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Sleep & Notification Settings */}
-          {notificationsEnabled && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border">
-              <div className="text-sm font-medium mb-3 flex items-center">
-                <Bell className="w-4 h-4 mr-2 text-blue-600" />
-                Sleep Notifications
               </div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
