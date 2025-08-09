@@ -167,7 +167,7 @@ export const onboardingSchema = z.object({
   email: z.string().email("Valid email is required"),
   phoneNumber: z.string().optional(),
   emergencyContactName: z.string().optional(),
-  emergencyContactEmail: z.string().email().optional().or(z.literal("")),
+  emergencyContactEmail: z.string().email().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
   emergencyContactPhone: z.string().optional(),
   shareAlertsEnabled: z.boolean().default(false),
   alertsEnabled: z.boolean().default(true),

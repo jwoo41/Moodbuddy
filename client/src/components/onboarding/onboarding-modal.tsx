@@ -65,6 +65,7 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
   });
 
   const onSubmit = (data: OnboardingData) => {
+    console.log("Onboarding form submitted with data:", data);
     onboardingMutation.mutate(data);
   };
 
