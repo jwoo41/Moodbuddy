@@ -137,14 +137,23 @@ export class MemStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     const id = userData.id || randomUUID();
     const now = new Date();
+    const existingUser = this.users.get(id);
+    
     const user: User = { 
       id,
-      email: userData.email ?? null,
-      firstName: userData.firstName ?? null,
-      lastName: userData.lastName ?? null,
-      displayName: userData.displayName ?? null,
-      profileImageUrl: userData.profileImageUrl ?? null,
-      createdAt: userData.createdAt ?? now,
+      email: userData.email ?? existingUser?.email ?? null,
+      firstName: userData.firstName ?? existingUser?.firstName ?? null,
+      lastName: userData.lastName ?? existingUser?.lastName ?? null,
+      displayName: userData.displayName ?? existingUser?.displayName ?? null,
+      profileImageUrl: userData.profileImageUrl ?? existingUser?.profileImageUrl ?? null,
+      phoneNumber: userData.phoneNumber ?? existingUser?.phoneNumber ?? null,
+      emergencyContactName: userData.emergencyContactName ?? existingUser?.emergencyContactName ?? null,
+      emergencyContactEmail: userData.emergencyContactEmail ?? existingUser?.emergencyContactEmail ?? null,
+      emergencyContactPhone: userData.emergencyContactPhone ?? existingUser?.emergencyContactPhone ?? null,
+      alertsEnabled: userData.alertsEnabled ?? existingUser?.alertsEnabled ?? true,
+      shareAlertsEnabled: userData.shareAlertsEnabled ?? existingUser?.shareAlertsEnabled ?? false,
+      onboardingCompleted: userData.onboardingCompleted ?? existingUser?.onboardingCompleted ?? false,
+      createdAt: existingUser?.createdAt ?? now,
       updatedAt: now
     };
     this.users.set(id, user);
@@ -240,6 +249,7 @@ export class MemStorage implements IStorage {
     const med: Medication = {
       ...medication,
       id,
+      dosage: medication.dosage ?? null,
       createdAt: new Date(),
       isActive: medication.isActive ?? true,
     };

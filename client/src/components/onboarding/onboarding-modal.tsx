@@ -44,7 +44,7 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
         ...data,
         onboardingCompleted: true,
       });
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -53,6 +53,14 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
         description: "Your profile has been set up successfully.",
       });
       onComplete();
+    },
+    onError: (error) => {
+      console.error("Onboarding error:", error);
+      toast({
+        title: "Setup Error",
+        description: "There was a problem setting up your account. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
