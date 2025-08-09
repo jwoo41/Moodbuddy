@@ -112,6 +112,28 @@ export const alertNotifications = pgTable("alert_notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const userStreaks = pgTable("user_streaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  category: varchar("category").notNull(), // 'mood', 'sleep', 'medication', 'exercise', 'weight', 'overall'
+  currentStreak: integer("current_streak").default(0).notNull(),
+  longestStreak: integer("longest_streak").default(0).notNull(),
+  lastEntryDate: timestamp("last_entry_date"),
+  totalEntries: integer("total_entries").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const achievements = pgTable("achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  achievementType: varchar("achievement_type").notNull(), // 'first_entry', 'streak_7', 'streak_30', 'perfect_week', etc.
+  category: varchar("category").notNull(), // 'mood', 'sleep', 'medication', 'exercise', 'weight', 'overall'
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  iconEmoji: varchar("icon_emoji").notNull(),
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const upsertUserSchema = createInsertSchema(users);
 
@@ -161,6 +183,10 @@ export const insertAlertNotificationSchema = createInsertSchema(alertNotificatio
   createdAt: true,
 });
 
+export const insertUserStreakSchema = createInsertSchema(userStreaks);
+
+export const insertAchievementSchema = createInsertSchema(achievements);
+
 // Onboarding schema for capturing initial user info
 export const onboardingSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
@@ -209,5 +235,11 @@ export type InsertWeightEntry = z.infer<typeof insertWeightEntrySchema>;
 
 export type AlertNotification = typeof alertNotifications.$inferSelect;
 export type InsertAlertNotification = z.infer<typeof insertAlertNotificationSchema>;
+
+export type UserStreak = typeof userStreaks.$inferSelect;
+export type InsertUserStreak = z.infer<typeof insertUserStreakSchema>;
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;

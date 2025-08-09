@@ -8,6 +8,8 @@ import {
   exerciseEntries,
   weightEntries,
   alertNotifications,
+  userStreaks,
+  achievements,
   type User,
   type UpsertUser,
   type MoodEntry,
@@ -26,6 +28,10 @@ import {
   type InsertWeightEntry,
   type AlertNotification,
   type InsertAlertNotification,
+  type UserStreak,
+  type InsertUserStreak,
+  type Achievement,
+  type InsertAchievement,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
@@ -87,6 +93,16 @@ export interface IStorage {
   getAlertNotifications(userId: string, limit?: number): Promise<AlertNotification[]>;
   createAlertNotification(alert: InsertAlertNotification): Promise<AlertNotification>;
   markAlertAsSent(id: string, sentToUser: boolean, sentToEmergencyContact: boolean): Promise<boolean>;
+  
+  // Gamification - Streaks
+  getUserStreaks(userId: string): Promise<UserStreak[]>;
+  getOrCreateUserStreak(userId: string, category: string): Promise<UserStreak>;
+  updateUserStreak(userId: string, category: string, data: Partial<InsertUserStreak>): Promise<UserStreak>;
+  
+  // Gamification - Achievements
+  getUserAchievements(userId: string): Promise<Achievement[]>;
+  createAchievement(achievement: InsertAchievement): Promise<Achievement>;
+  hasAchievement(userId: string, achievementType: string, category: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -99,6 +115,8 @@ export class MemStorage implements IStorage {
   private exerciseEntries: Map<string, ExerciseEntry>;
   private weightEntries: Map<string, WeightEntry>;
   private alertNotifications: Map<string, AlertNotification>;
+  private userStreaks: Map<string, UserStreak>;
+  private achievements: Map<string, Achievement>;
 
   constructor() {
     this.users = new Map();
@@ -110,6 +128,8 @@ export class MemStorage implements IStorage {
     this.exerciseEntries = new Map();
     this.weightEntries = new Map();
     this.alertNotifications = new Map();
+    this.userStreaks = new Map();
+    this.achievements = new Map();
 
     // Create a default user for demo purposes
     this.upsertUser({
@@ -465,6 +485,74 @@ export class MemStorage implements IStorage {
     this.alertNotifications.set(id, updated);
     return true;
   }
+
+  // Gamification - Streaks
+  async getUserStreaks(userId: string): Promise<UserStreak[]> {
+    return Array.from(this.userStreaks.values()).filter(streak => streak.userId === userId);
+  }
+
+  async getOrCreateUserStreak(userId: string, category: string): Promise<UserStreak> {
+    const key = `${userId}-${category}`;
+    const existing = this.userStreaks.get(key);
+    
+    if (existing) {
+      return existing;
+    }
+
+    const newStreak: UserStreak = {
+      id: randomUUID(),
+      userId,
+      category,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastEntryDate: null,
+      totalEntries: 0,
+      updatedAt: new Date(),
+    };
+    
+    this.userStreaks.set(key, newStreak);
+    return newStreak;
+  }
+
+  async updateUserStreak(userId: string, category: string, data: Partial<InsertUserStreak>): Promise<UserStreak> {
+    const key = `${userId}-${category}`;
+    const existing = await this.getOrCreateUserStreak(userId, category);
+    
+    const updated = { 
+      ...existing, 
+      ...data,
+      updatedAt: new Date()
+    };
+    
+    this.userStreaks.set(key, updated);
+    return updated;
+  }
+
+  // Gamification - Achievements
+  async getUserAchievements(userId: string): Promise<Achievement[]> {
+    return Array.from(this.achievements.values()).filter(achievement => achievement.userId === userId);
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const id = randomUUID();
+    const newAchievement: Achievement = {
+      ...achievement,
+      id,
+      earnedAt: new Date(),
+    };
+    
+    this.achievements.set(id, newAchievement);
+    return newAchievement;
+  }
+
+  async hasAchievement(userId: string, achievementType: string, category: string): Promise<boolean> {
+    return Array.from(this.achievements.values()).some(
+      achievement => 
+        achievement.userId === userId && 
+        achievement.achievementType === achievementType && 
+        achievement.category === category
+    );
+  }
 }
 
 // Database storage implementation for Replit Auth
@@ -534,6 +622,14 @@ export class DatabaseStorage implements IStorage {
   async getAlertNotifications(): Promise<AlertNotification[]> { throw new Error("Not implemented for database yet"); }
   async createAlertNotification(): Promise<AlertNotification> { throw new Error("Not implemented for database yet"); }
   async markAlertAsSent(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+  
+  // Gamification - Database implementation placeholders
+  async getUserStreaks(): Promise<UserStreak[]> { throw new Error("Not implemented for database yet"); }
+  async getOrCreateUserStreak(): Promise<UserStreak> { throw new Error("Not implemented for database yet"); }
+  async updateUserStreak(): Promise<UserStreak> { throw new Error("Not implemented for database yet"); }
+  async getUserAchievements(): Promise<Achievement[]> { throw new Error("Not implemented for database yet"); }
+  async createAchievement(): Promise<Achievement> { throw new Error("Not implemented for database yet"); }
+  async hasAchievement(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
 }
 
 // Use MemStorage for now, switch to DatabaseStorage later

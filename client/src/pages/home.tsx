@@ -17,6 +17,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken, ExerciseEntry, WeightEntry } from "@shared/schema";
 import OnboardingModal from "@/components/onboarding/onboarding-modal";
 import MoodChart from "@/components/mood/mood-chart";
+import { AchievementToast } from "@/components/gamification/achievement-toast";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -59,6 +60,7 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [pendingAchievements, setPendingAchievements] = useState<any[]>([]);
 
   // Check if user needs onboarding
   useEffect(() => {
@@ -171,11 +173,26 @@ export default function Home() {
         return response.json();
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/mood"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
+      
+      // Handle achievements if returned from API
+      if (data.gamification?.newAchievements?.length > 0) {
+        setPendingAchievements(data.gamification.newAchievements);
+      }
+      
+      let description = todaysMood ? "Your mood has been updated." : "Thanks for sharing how you're feeling!";
+      if (data.gamification?.streak > 1) {
+        description += ` 🔥 ${data.gamification.streak} day streak!`;
+      }
+      if (data.gamification?.isNewRecord) {
+        description += " 🎉 New record!";
+      }
+      
       toast({
         title: todaysMood ? "Mood updated!" : "Mood logged!",
-        description: todaysMood ? "Your mood has been updated." : "Thanks for sharing how you're feeling!",
+        description,
       });
     },
   });
@@ -1893,6 +1910,13 @@ export default function Home() {
           </p>
         </div>
       </div>
+      {/* Achievement Toast Handler */}
+      {pendingAchievements.length > 0 && (
+        <AchievementToast 
+          achievements={pendingAchievements} 
+          onClose={() => setPendingAchievements([])} 
+        />
+      )}
     </div>
   );
 }

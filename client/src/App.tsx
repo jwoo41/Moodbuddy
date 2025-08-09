@@ -13,6 +13,7 @@ import Medication from "./pages/medication";
 import Mood from "./pages/mood";
 import Journal from "./pages/journal";
 import Chat from "./pages/chat";
+import GamificationPage from "./pages/gamification";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
 
@@ -42,6 +43,7 @@ function Router() {
           <Route path="/mood" component={Mood} />
           <Route path="/journal" component={Journal} />
           <Route path="/chat" component={Chat} />
+          <Route path="/progress" component={GamificationPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
