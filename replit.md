@@ -14,6 +14,7 @@ Preferred communication style: Simple, everyday language.
 App name preference: "MoodBuddy" (updated from "MindFlow" → "MindWell" → "MoodBuddy")
 Home page interface preference: Simple, emoji-focused design with prominent mood tracking
 Medication tracking preference: Thumbs up/down emojis with green checkmarks when completed, built-in notifications for medication reminders
+Sleep tracking preference: Quick and easy logging without quality rating for faster entry
 
 ## System Architecture
 

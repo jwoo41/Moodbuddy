@@ -31,7 +31,7 @@ export default function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [sleepForm, setSleepForm] = useState({ bedtime: "", wakeTime: "", quality: "" });
+  const [sleepForm, setSleepForm] = useState({ bedtime: "", wakeTime: "" });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const { data: moodEntries = [] } = useQuery<MoodEntry[]>({
@@ -65,7 +65,7 @@ export default function Home() {
   });
 
   const addSleepMutation = useMutation({
-    mutationFn: async (data: { bedtime: string; wakeTime: string; quality: string }) => {
+    mutationFn: async (data: { bedtime: string; wakeTime: string }) => {
       const bedtime = new Date(`${new Date().toDateString()} ${data.bedtime}:00`);
       const wakeTime = new Date(`${new Date().toDateString()} ${data.wakeTime}:00`);
       
@@ -79,7 +79,7 @@ export default function Home() {
         bedtime,
         wakeTime,
         hoursSlept,
-        quality: data.quality,
+        quality: "good", // Default quality for quick logging
       };
 
       const response = await apiRequest("POST", "/api/sleep", sleepData);
@@ -91,7 +91,7 @@ export default function Home() {
         title: "Sleep logged",
         description: "Your sleep data has been recorded!",
       });
-      setSleepForm({ bedtime: "", wakeTime: "", quality: "" });
+      setSleepForm({ bedtime: "", wakeTime: "" });
     },
   });
 
@@ -236,7 +236,7 @@ export default function Home() {
           {todaysSleep ? (
             <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <div className="text-lg font-medium text-green-700 dark:text-green-400">
-                ✅ Sleep logged: {todaysSleep.hoursSlept}h ({todaysSleep.quality})
+                ✅ Sleep logged: {todaysSleep.hoursSlept}h
               </div>
             </div>
           ) : (
@@ -255,26 +255,14 @@ export default function Home() {
                 onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
                 data-testid="input-waketime"
               />
-              <div className="flex space-x-2">
-                <Select value={sleepForm.quality} onValueChange={(value) => setSleepForm({...sleepForm, quality: value})}>
-                  <SelectTrigger data-testid="select-quality">
-                    <SelectValue placeholder="Quality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="poor">Poor</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button 
-                  onClick={() => addSleepMutation.mutate(sleepForm)}
-                  disabled={!sleepForm.bedtime || !sleepForm.wakeTime || !sleepForm.quality || addSleepMutation.isPending}
-                  data-testid="button-log-sleep"
-                >
-                  Log
-                </Button>
-              </div>
+              <Button 
+                onClick={() => addSleepMutation.mutate(sleepForm)}
+                disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
+                data-testid="button-log-sleep"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Log Sleep
+              </Button>
             </div>
           )}
         </CardHeader>
