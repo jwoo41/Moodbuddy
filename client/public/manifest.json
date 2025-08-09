@@ -1,6 +1,6 @@
 {
-  "name": "MindFlow - Mental Health Companion",
-  "short_name": "MindFlow",
+  "name": "MoodBuddy - Mental Health Companion",
+  "short_name": "MoodBuddy",
   "description": "Comprehensive mental health tracking with sleep, mood, medication, and journaling features",
   "start_url": "/",
   "display": "standalone",

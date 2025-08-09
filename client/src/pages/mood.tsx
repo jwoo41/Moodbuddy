@@ -343,8 +343,8 @@ export default function Mood() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Smile className="w-12 h-12 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
-                <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-4">
+                <Smile className="w-12 h-12 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
+                <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-4">
                   No mood entries yet
                 </p>
                 <Button onClick={() => setIsAddModalOpen(true)} data-testid="button-add-first-mood">
@@ -371,18 +371,18 @@ export default function Mood() {
                       <span className="text-xl">
                         {moodEmojis[mood as keyof typeof moodEmojis]}
                       </span>
-                      <span className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground">
+                      <span className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground">
                         {label}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-16 h-2 bg-mindflow-neutral-100 dark:bg-muted rounded-full">
+                      <div className="w-16 h-2 bg-moodbuddy-neutral-100 dark:bg-muted rounded-full">
                         <div 
                           className="h-full bg-primary rounded-full transition-all"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      <span className="text-sm text-mindflow-neutral-500 dark:text-muted-foreground w-8 text-right" data-testid={`mood-count-${mood}`}>
+                      <span className="text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground w-8 text-right" data-testid={`mood-count-${mood}`}>
                         {count}
                       </span>
                     </div>

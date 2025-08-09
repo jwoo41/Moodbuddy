@@ -136,10 +136,10 @@ export default function Medication() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-mindflow-neutral-900 dark:text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
             Medication Management
           </h1>
-          <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+          <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
             Track your medications and stay on schedule.
           </p>
         </div>
@@ -264,13 +264,13 @@ export default function Medication() {
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <Pill className="w-4 h-4 mr-2" />
               Total Medications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="total-medications">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="total-medications">
               {medications.length}
             </div>
           </CardContent>
@@ -278,13 +278,13 @@ export default function Medication() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <CheckCircle className="w-4 h-4 mr-2" />
               Taken Today
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="taken-today">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="taken-today">
               {getTodaysTaken()} / {getTodaysTotal()}
             </div>
           </CardContent>
@@ -292,13 +292,13 @@ export default function Medication() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <Clock className="w-4 h-4 mr-2" />
               Adherence Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="adherence-rate">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="adherence-rate">
               {getTodaysTotal() > 0 ? Math.round((getTodaysTaken() / getTodaysTotal()) * 100) : 0}%
             </div>
           </CardContent>
@@ -325,8 +325,8 @@ export default function Medication() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Pill className="w-12 h-12 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
-                <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-4">
+                <Pill className="w-12 h-12 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
+                <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-4">
                   No medications added yet
                 </p>
                 <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-add-first-medication">
@@ -354,16 +354,16 @@ export default function Medication() {
                   )
                 }))
               ).sort((a, b) => a.time.localeCompare(b.time)).map((schedule, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-mindflow-neutral-50 dark:bg-muted rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-moodbuddy-neutral-50 dark:bg-muted rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="text-sm font-medium text-mindflow-neutral-900 dark:text-foreground">
+                    <div className="text-sm font-medium text-moodbuddy-neutral-900 dark:text-foreground">
                       {schedule.time}
                     </div>
                     <div>
-                      <div className="font-medium text-mindflow-neutral-700 dark:text-foreground">
+                      <div className="font-medium text-moodbuddy-neutral-700 dark:text-foreground">
                         {schedule.medication.name}
                       </div>
-                      <div className="text-xs text-mindflow-neutral-500 dark:text-muted-foreground">
+                      <div className="text-xs text-moodbuddy-neutral-500 dark:text-muted-foreground">
                         {schedule.medication.dosage}
                       </div>
                     </div>
@@ -376,8 +376,8 @@ export default function Medication() {
               
               {medications.length === 0 && (
                 <div className="text-center py-6">
-                  <Clock className="w-8 h-8 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-2" />
-                  <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+                  <Clock className="w-8 h-8 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-2" />
+                  <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
                     No medications scheduled for today
                   </p>
                 </div>

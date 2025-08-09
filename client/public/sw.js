@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mindflow-v1';
+const CACHE_NAME = 'moodbuddy-v1';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',

@@ -75,9 +75,9 @@ export default function JournalEntryComponent({ entry, onEdit }: JournalEntryPro
   };
 
   return (
-    <div className="border-l-4 border-primary/20 pl-4 py-3 bg-mindflow-neutral-50/50 dark:bg-muted/50 rounded-r-lg">
+    <div className="border-l-4 border-primary/20 pl-4 py-3 bg-moodbuddy-neutral-50/50 dark:bg-muted/50 rounded-r-lg">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground" data-testid={`journal-date-${entry.id}`}>
+        <span className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground" data-testid={`journal-date-${entry.id}`}>
           {formatDate(entry.updatedAt)}
         </span>
         <div className="flex space-x-1">
@@ -85,7 +85,7 @@ export default function JournalEntryComponent({ entry, onEdit }: JournalEntryPro
             size="sm"
             variant="ghost"
             onClick={() => onEdit(entry)}
-            className="text-xs text-mindflow-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
+            className="text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
             data-testid={`button-edit-${entry.id}`}
           >
             <Edit className="w-3 h-3" />
@@ -95,7 +95,7 @@ export default function JournalEntryComponent({ entry, onEdit }: JournalEntryPro
             variant="ghost"
             onClick={() => deleteMutation.mutate()}
             disabled={deleteMutation.isPending}
-            className="text-xs text-mindflow-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
+            className="text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
             data-testid={`button-delete-${entry.id}`}
           >
             <Trash2 className="w-3 h-3" />
@@ -104,12 +104,12 @@ export default function JournalEntryComponent({ entry, onEdit }: JournalEntryPro
       </div>
       
       {entry.title && (
-        <h4 className="font-medium text-mindflow-neutral-800 dark:text-foreground mb-1" data-testid={`journal-title-${entry.id}`}>
+        <h4 className="font-medium text-moodbuddy-neutral-800 dark:text-foreground mb-1" data-testid={`journal-title-${entry.id}`}>
           {entry.title}
         </h4>
       )}
       
-      <p className="text-sm text-mindflow-neutral-600 dark:text-muted-foreground line-clamp-2" data-testid={`journal-preview-${entry.id}`}>
+      <p className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground line-clamp-2" data-testid={`journal-preview-${entry.id}`}>
         {getPreview(entry.content)}
       </p>
     </div>

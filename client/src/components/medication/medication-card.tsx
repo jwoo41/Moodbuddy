@@ -71,17 +71,17 @@ export default function MedicationCard({ medication, takenRecords }: MedicationC
       <div className="flex items-center space-x-3">
         <div className={`w-3 h-3 rounded-full ${getIndicatorColor()}`} />
         <div>
-          <div className="font-medium text-mindflow-neutral-700 dark:text-foreground" data-testid={`medication-name-${medication.id}`}>
+          <div className="font-medium text-moodbuddy-neutral-700 dark:text-foreground" data-testid={`medication-name-${medication.id}`}>
             {medication.name}
           </div>
-          <div className="text-xs text-mindflow-neutral-500 dark:text-muted-foreground" data-testid={`medication-dosage-${medication.id}`}>
+          <div className="text-xs text-moodbuddy-neutral-500 dark:text-muted-foreground" data-testid={`medication-dosage-${medication.id}`}>
             {medication.dosage}
           </div>
         </div>
       </div>
       
       <div className="text-right">
-        <div className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground" data-testid={`medication-time-${medication.id}`}>
+        <div className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground" data-testid={`medication-time-${medication.id}`}>
           {nextTime || "No more doses today"}
         </div>
         {isTaken ? (
