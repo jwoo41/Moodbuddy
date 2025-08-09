@@ -88,11 +88,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sleep", async (req, res) => {
     try {
+      console.log("Sleep entry request body:", JSON.stringify(req.body, null, 2));
       const data = insertSleepEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
+      console.log("Parsed sleep data:", JSON.stringify(data, null, 2));
       const entry = await storage.createSleepEntry(data);
       res.json(entry);
     } catch (error) {
-      res.status(400).json({ error: "Invalid sleep entry data" });
+      console.error("Sleep entry validation error:", error);
+      res.status(400).json({ error: "Invalid sleep entry data", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

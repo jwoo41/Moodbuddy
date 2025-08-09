@@ -80,7 +80,11 @@ export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({
   createdAt: true,
 });
 
-export const insertSleepEntrySchema = createInsertSchema(sleepEntries).omit({
+export const insertSleepEntrySchema = createInsertSchema(sleepEntries, {
+  bedtime: z.coerce.date(),
+  wakeTime: z.coerce.date(),
+  hoursSlept: z.coerce.number(),
+}).omit({
   id: true,
   createdAt: true,
 });
