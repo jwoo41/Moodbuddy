@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { GamificationService } from "./gamification";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import {
   insertMoodEntrySchema,
@@ -72,6 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // For demo purposes, we'll use a hardcoded user ID (will switch to auth later)
   const DEMO_USER_ID = "demo-user";
+  
+  // Initialize gamification service
+  const gamificationService = new GamificationService(storage);
 
   // Mood entries
   app.get("/api/mood", async (req, res) => {
@@ -87,7 +91,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertMoodEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
       const entry = await storage.createMoodEntry(data);
-      res.json(entry);
+      
+      // Update streak and check for achievements
+      const streakResult = await gamificationService.updateStreakOnEntry(DEMO_USER_ID, 'mood');
+      
+      res.json({ 
+        entry, 
+        gamification: {
+          streak: streakResult.streak,
+          isNewRecord: streakResult.isNewRecord,
+          newAchievements: streakResult.achievements
+        }
+      });
     } catch (error) {
       res.status(400).json({ error: "Invalid mood entry data" });
     }
@@ -136,7 +151,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertSleepEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
       console.log("Parsed sleep data:", JSON.stringify(data, null, 2));
       const entry = await storage.createSleepEntry(data);
-      res.json(entry);
+      
+      // Update streak and check for achievements
+      const streakResult = await gamificationService.updateStreakOnEntry(DEMO_USER_ID, 'sleep');
+      
+      res.json({ 
+        entry, 
+        gamification: {
+          streak: streakResult.streak,
+          isNewRecord: streakResult.isNewRecord,
+          newAchievements: streakResult.achievements
+        }
+      });
     } catch (error) {
       console.error("Sleep entry validation error:", error);
       res.status(400).json({ error: "Invalid sleep entry data", details: error instanceof Error ? error.message : 'Unknown error' });
@@ -299,7 +325,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertExerciseEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
       const entry = await storage.createExerciseEntry(data);
-      res.json(entry);
+      
+      // Update streak and check for achievements
+      const streakResult = await gamificationService.updateStreakOnEntry(DEMO_USER_ID, 'exercise');
+      
+      res.json({ 
+        entry, 
+        gamification: {
+          streak: streakResult.streak,
+          isNewRecord: streakResult.isNewRecord,
+          newAchievements: streakResult.achievements
+        }
+      });
     } catch (error) {
       res.status(400).json({ error: "Invalid exercise entry data" });
     }
@@ -346,7 +383,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertWeightEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
       const entry = await storage.createWeightEntry(data);
-      res.json(entry);
+      
+      // Update streak and check for achievements
+      const streakResult = await gamificationService.updateStreakOnEntry(DEMO_USER_ID, 'weight');
+      
+      res.json({ 
+        entry, 
+        gamification: {
+          streak: streakResult.streak,
+          isNewRecord: streakResult.isNewRecord,
+          newAchievements: streakResult.achievements
+        }
+      });
     } catch (error) {
       res.status(400).json({ error: "Invalid weight entry data" });
     }
@@ -436,6 +484,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating alert:", error);
       res.status(500).json({ message: "Failed to create alert" });
+    }
+  });
+
+  // Gamification endpoints
+  app.get("/api/streaks", async (req, res) => {
+    try {
+      const streaks = await storage.getUserStreaks(DEMO_USER_ID);
+      const streakSummary = await gamificationService.getStreakSummary(DEMO_USER_ID);
+      res.json({ streaks, summary: streakSummary });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch streaks" });
+    }
+  });
+
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getUserAchievements(DEMO_USER_ID);
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch achievements" });
     }
   });
 
