@@ -51,10 +51,18 @@ export default function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [sleepForm, setSleepForm] = useState({ bedtime: "", wakeTime: "" });
+  const [sleepForm, setSleepForm] = useState({ 
+    bedtime: "", 
+    wakeTime: "", 
+    bedtimeDescriptor: "", 
+    wakeupDescriptor: "" 
+  });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState("");
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [moodDescription, setMoodDescription] = useState("");
+  const [showMoodDescription, setShowMoodDescription] = useState(false);
 
   const { data: moodEntries = [] } = useQuery<MoodEntry[]>({
     queryKey: ["/api/mood"],
@@ -83,8 +91,8 @@ export default function Home() {
   });
 
   const addMoodMutation = useMutation({
-    mutationFn: async (mood: string) => {
-      const response = await apiRequest("POST", "/api/mood", { mood });
+    mutationFn: async (data: { mood: string; description?: string }) => {
+      const response = await apiRequest("POST", "/api/mood", data);
       return response.json();
     },
     onSuccess: () => {
@@ -97,7 +105,12 @@ export default function Home() {
   });
 
   const addSleepMutation = useMutation({
-    mutationFn: async (data: { bedtime: string; wakeTime: string }) => {
+    mutationFn: async (data: { 
+      bedtime: string; 
+      wakeTime: string; 
+      bedtimeDescriptor?: string; 
+      wakeupDescriptor?: string; 
+    }) => {
       // Validate input
       if (!data.bedtime || !data.wakeTime) {
         throw new Error("Both bedtime and wake time are required");
@@ -123,6 +136,8 @@ export default function Home() {
         wakeTime,
         hoursSlept,
         quality: "good", // Default quality for quick logging
+        bedtimeDescriptor: data.bedtimeDescriptor || null,
+        wakeupDescriptor: data.wakeupDescriptor || null,
       };
 
       const response = await apiRequest("POST", "/api/sleep", sleepData);
@@ -134,7 +149,12 @@ export default function Home() {
         title: "Sleep logged",
         description: "Your sleep data has been recorded!",
       });
-      setSleepForm({ bedtime: "", wakeTime: "" });
+      setSleepForm({ 
+        bedtime: "", 
+        wakeTime: "", 
+        bedtimeDescriptor: "", 
+        wakeupDescriptor: "" 
+      });
     },
   });
 
@@ -296,11 +316,38 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
+      {/* Header with User Profile */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
-          Hello, {user?.firstName || 'Friend'}! 👋
-        </h1>
+        <div className="flex items-center justify-center mb-4">
+          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground">
+            Hello, {user?.displayName || user?.firstName || 'Friend'}! 👋
+          </h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="ml-3">
+                <User className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>User Profile</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Display Name</label>
+                  <Input 
+                    placeholder="What should we call you?"
+                    defaultValue={user?.displayName || user?.firstName || ''}
+                    data-testid="input-display-name"
+                  />
+                </div>
+                <Button className="w-full" data-testid="button-save-profile">
+                  Save Profile
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
         <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground text-lg">
           How are you feeling today?
         </p>
@@ -320,14 +367,17 @@ export default function Home() {
           )}
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center space-x-4 mb-4">
             {Object.entries(moodEmojis).map(([mood, emoji]) => (
               <Button
                 key={mood}
                 variant={todaysMood?.mood === mood ? "default" : "outline"}
                 size="lg"
                 className="text-3xl p-4 h-auto"
-                onClick={() => addMoodMutation.mutate(mood)}
+                onClick={() => {
+                  setSelectedMood(mood);
+                  setShowMoodDescription(true);
+                }}
                 disabled={addMoodMutation.isPending}
                 data-testid={`mood-${mood}`}
               >
@@ -335,6 +385,46 @@ export default function Home() {
               </Button>
             ))}
           </div>
+          
+          {showMoodDescription && selectedMood && (
+            <div className="space-y-3">
+              <Input
+                placeholder="How would you describe this feeling? (optional)"
+                value={moodDescription}
+                onChange={(e) => setMoodDescription(e.target.value)}
+                data-testid="input-mood-description"
+              />
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => {
+                    addMoodMutation.mutate({ 
+                      mood: selectedMood, 
+                      description: moodDescription || undefined 
+                    });
+                    setShowMoodDescription(false);
+                    setSelectedMood(null);
+                    setMoodDescription("");
+                  }}
+                  disabled={addMoodMutation.isPending}
+                  className="flex-1"
+                  data-testid="button-submit-mood"
+                >
+                  {addMoodMutation.isPending ? "Saving..." : "Save Mood"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowMoodDescription(false);
+                    setSelectedMood(null);
+                    setMoodDescription("");
+                  }}
+                  data-testid="button-cancel-mood"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -352,28 +442,44 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <Input
-                type="time"
-                placeholder="Bedtime"
-                value={sleepForm.bedtime}
-                onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
-                data-testid="input-bedtime"
-              />
-              <Input
-                type="time"
-                placeholder="Wake time"
-                value={sleepForm.wakeTime}
-                onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
-                data-testid="input-waketime"
-              />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="time"
+                  placeholder="Bedtime"
+                  value={sleepForm.bedtime}
+                  onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
+                  data-testid="input-bedtime"
+                />
+                <Input
+                  type="time"
+                  placeholder="Wake time"
+                  value={sleepForm.wakeTime}
+                  onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
+                  data-testid="input-waketime"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  placeholder="How did you feel going to bed?"
+                  value={sleepForm.bedtimeDescriptor}
+                  onChange={(e) => setSleepForm({...sleepForm, bedtimeDescriptor: e.target.value})}
+                  data-testid="input-bedtime-descriptor"
+                />
+                <Input
+                  placeholder="How did you feel waking up?"
+                  value={sleepForm.wakeupDescriptor}
+                  onChange={(e) => setSleepForm({...sleepForm, wakeupDescriptor: e.target.value})}
+                  data-testid="input-wakeup-descriptor"
+                />
+              </div>
               <Button 
                 onClick={() => addSleepMutation.mutate(sleepForm)}
                 disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
                 data-testid="button-log-sleep"
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 text-white w-full"
               >
-                Log Sleep
+                {addSleepMutation.isPending ? "Logging Sleep..." : "Log Sleep"}
               </Button>
             </div>
           )}
@@ -541,79 +647,88 @@ export default function Home() {
             <div className="space-y-3">
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="font-medium mb-2">{med.name} - {med.dosage}</div>
-                  {/* Single tracking section with all scheduled times listed */}
-                  <div className={`p-4 rounded-lg border-2 transition-all ${
-                    medicationTaken.some(record => 
+                  <div className="font-medium mb-3">{med.name} - {med.dosage}</div>
+                  
+                  {/* Visual pill representation */}
+                  <div className="flex items-center justify-center space-x-4 mb-4">
+                    {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => (
+                      <div key={pillIndex} className="text-center">
+                        <div className={`w-12 h-6 rounded-full border-2 flex items-center justify-center ${
+                          medicationTaken.some(record => 
+                            record.medicationId === med.id &&
+                            new Date(record.takenAt).toDateString() === new Date().toDateString()
+                          ) ? 'bg-green-200 border-green-400' : 'bg-gray-200 border-gray-400'
+                        }`}>
+                          💊
+                        </div>
+                        <div className="text-xs mt-1">
+                          {med.times?.[pillIndex] || 'N/A'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="font-bold text-lg mb-2">
+                      Schedule: {med.times?.length > 0 ? med.times.join(', ') : 'No times set'}
+                    </div>
+                    
+                    <div className="flex justify-center space-x-6">
+                      <Button
+                        size="lg"
+                        variant="ghost"
+                        className="p-4 h-auto hover:bg-green-200 dark:hover:bg-green-800 flex flex-col items-center"
+                        onClick={() => {
+                          const currentHour = new Date().getHours();
+                          const nextTime = med.times?.find(time => {
+                            const timeHour = parseInt(time.split(':')[0]);
+                            return timeHour >= currentHour;
+                          }) || med.times?.[0] || '08:00';
+                          
+                          markMedicationTakenMutation.mutate({
+                            medicationId: med.id,
+                            scheduledTime: nextTime
+                          });
+                        }}
+                        disabled={medicationTaken.some(record => 
+                          record.medicationId === med.id &&
+                          new Date(record.takenAt).toDateString() === new Date().toDateString()
+                        ) || markMedicationTakenMutation.isPending}
+                        data-testid={`med-taken-${med.id}`}
+                      >
+                        <span className="text-5xl">👍</span>
+                        <span className="text-sm mt-1">Taken</span>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="ghost"
+                        className="p-4 h-auto hover:bg-red-200 dark:hover:bg-red-800 flex flex-col items-center"
+                        onClick={() => {
+                          toast({
+                            title: "Medication skipped",
+                            description: "Marked as intentionally skipped for today",
+                            variant: "destructive",
+                          });
+                        }}
+                        disabled={medicationTaken.some(record => 
+                          record.medicationId === med.id &&
+                          new Date(record.takenAt).toDateString() === new Date().toDateString()
+                        )}
+                        data-testid={`med-skip-${med.id}`}
+                      >
+                        <span className="text-5xl">👎</span>
+                        <span className="text-sm mt-1">Skip</span>
+                      </Button>
+                    </div>
+                      
+                    {medicationTaken.some(record => 
                       record.medicationId === med.id &&
                       new Date(record.takenAt).toDateString() === new Date().toDateString()
-                    ) ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-                  }`}>
-                    <div className="text-center">
-                      <div className="font-bold text-lg mb-2">
-                        Today's Schedule: {med.times?.length > 0 ? med.times.join(', ') : 'No times set'}
+                    ) && (
+                      <div className="mt-3 text-green-600 dark:text-green-400 font-bold text-lg">
+                        ✅ TAKEN TODAY
                       </div>
-                      <div className="text-sm text-muted-foreground mb-3">
-                        {med.frequency === 'daily' ? '1x daily' : med.frequency === 'twice-daily' ? '2x daily' : '3x daily'}
-                      </div>
-                      
-                      <div className="flex justify-center space-x-4">
-                        <Button
-                          size="lg"
-                          variant="ghost"
-                          className="p-3 h-auto hover:bg-green-200 dark:hover:bg-green-800"
-                          onClick={() => {
-                            // Mark medication as taken for the current time or next scheduled time
-                            const currentHour = new Date().getHours();
-                            const currentTime = `${currentHour.toString().padStart(2, '0')}:00`;
-                            const nextTime = med.times?.find(time => {
-                              const timeHour = parseInt(time.split(':')[0]);
-                              return timeHour >= currentHour;
-                            }) || med.times?.[0] || '08:00';
-                            
-                            markMedicationTakenMutation.mutate({
-                              medicationId: med.id,
-                              scheduledTime: nextTime
-                            });
-                          }}
-                          disabled={medicationTaken.some(record => 
-                            record.medicationId === med.id &&
-                            new Date(record.takenAt).toDateString() === new Date().toDateString()
-                          ) || markMedicationTakenMutation.isPending}
-                          data-testid={`med-taken-${med.id}`}
-                        >
-                          <span className="text-4xl">👍</span>
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="ghost"
-                          className="p-3 h-auto hover:bg-red-200 dark:hover:bg-red-800"
-                          onClick={() => {
-                            toast({
-                              title: "Medication skipped",
-                              description: "Marked as intentionally skipped for today",
-                              variant: "destructive",
-                            });
-                          }}
-                          disabled={medicationTaken.some(record => 
-                            record.medicationId === med.id &&
-                            new Date(record.takenAt).toDateString() === new Date().toDateString()
-                          )}
-                          data-testid={`med-skip-${med.id}`}
-                        >
-                          <span className="text-4xl">👎</span>
-                        </Button>
-                      </div>
-                      
-                      {medicationTaken.some(record => 
-                        record.medicationId === med.id &&
-                        new Date(record.takenAt).toDateString() === new Date().toDateString()
-                      ) && (
-                        <div className="mt-3 text-green-600 dark:text-green-400 font-bold text-lg">
-                          ✅ TAKEN TODAY
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
               ))}
