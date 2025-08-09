@@ -564,7 +564,7 @@ export default function Home() {
     
     medications.forEach(medication => {
       medication.times?.forEach(time => {
-        const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage);
+        const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage || undefined);
         if (notificationId) {
           newNotificationIds.push(notificationId);
         }
@@ -1417,7 +1417,7 @@ export default function Home() {
                         // Pre-populate form with existing medication data
                         medForm.reset({
                           name: med.name,
-                          dosage: med.dosage,
+                          dosage: med.dosage || undefined,
                           frequency: med.frequency,
                           times: med.times || []
                         });
@@ -1772,6 +1772,36 @@ export default function Home() {
           userName={user?.firstName || user?.displayName || ""}
         />
       )}
+      {/* Emergency Hotline Footer */}
+      <div className="mt-8 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800/30">
+        <div className="text-center">
+          <h4 className="text-red-700 dark:text-red-400 font-semibold mb-2 text-sm">Crisis Support Available 24/7</h4>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <span className="text-red-600 dark:text-red-300">
+              <strong>Crisis:</strong>{" "}
+              <a href="tel:988" className="underline hover:no-underline font-medium">
+                Call 988
+              </a>
+            </span>
+            <span className="text-red-600 dark:text-red-300">
+              <strong>Text:</strong> HOME to 741741
+            </span>
+            <span className="text-red-600 dark:text-red-300">
+              <a 
+                href="https://findahelpline.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline font-medium"
+              >
+                International Help
+              </a>
+            </span>
+          </div>
+          <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+            If you're having thoughts of self-harm, please reach out immediately. You are not alone.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

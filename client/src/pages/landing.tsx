@@ -118,6 +118,35 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 text-center text-gray-600 dark:text-gray-400">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800/30">
+          <h4 className="text-red-700 dark:text-red-400 font-semibold mb-2">Crisis Support Available 24/7</h4>
+          <div className="space-y-2 text-sm">
+            <p className="text-red-600 dark:text-red-300">
+              <strong>National Suicide Prevention Lifeline:</strong>{" "}
+              <a href="tel:988" className="underline hover:no-underline font-medium">
+                988
+              </a>
+            </p>
+            <p className="text-red-600 dark:text-red-300">
+              <strong>Crisis Text Line:</strong>{" "}
+              <span className="font-medium">Text HOME to 741741</span>
+            </p>
+            <p className="text-red-600 dark:text-red-300">
+              <strong>International:</strong>{" "}
+              <a 
+                href="https://findahelpline.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline font-medium"
+              >
+                findahelpline.com
+              </a>
+            </p>
+            <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+              If you're having thoughts of self-harm, please reach out immediately. You are not alone.
+            </p>
+          </div>
+        </div>
         <p>&copy; 2024 MoodBuddy. Supporting your mental wellness journey.</p>
       </footer>
     </div>
