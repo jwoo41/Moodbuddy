@@ -33,7 +33,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Schema Design
 The application uses a PostgreSQL database with the following core entities:
-- **Users**: Basic user authentication and profile information
+- **Users**: Replit Auth integration with email, names, profile images, and timestamps
+- **Sessions**: Secure session storage table for Replit Auth token management
 - **Mood Entries**: Categorical mood tracking with notes and timestamps
 - **Sleep Entries**: Comprehensive sleep data including bedtime, wake time, duration, and quality ratings
 - **Medications**: User medication management with dosage and scheduling information
@@ -47,9 +48,11 @@ The application uses a PostgreSQL database with the following core entities:
 - **Migration System**: Drizzle Kit handles database schema versioning and migrations
 
 ### Authentication & Session Management
-- **Session Strategy**: Server-side session storage in PostgreSQL
-- **Demo Mode**: Currently implements hardcoded demo user for development and testing
-- **Security**: Prepared for future authentication implementation with user management structure
+- **Authentication Provider**: Replit Auth (OpenID Connect) for secure user authentication
+- **Session Strategy**: PostgreSQL session storage using connect-pg-simple for production reliability
+- **User Management**: Complete user upsert system supporting Replit user claims (email, name, profile image)
+- **Authorization**: JWT token refresh and protected API endpoints with middleware
+- **Security**: Production-ready authentication with proper session expiration and token management
 
 ### Development & Build Pipeline
 - **Development Server**: Vite development server with HMR for client, tsx for server hot reload
@@ -59,7 +62,9 @@ The application uses a PostgreSQL database with the following core entities:
 
 ### Component Architecture
 - **Design System**: shadcn/ui provides consistent, accessible components
-- **Layout Strategy**: Header navigation for desktop, bottom tab navigation for mobile
+- **Authentication Flow**: Landing page for unauthenticated users, home dashboard for authenticated users
+- **Layout Strategy**: Conditional rendering based on auth state - full landing page or app with header/mobile nav
+- **Protected Routes**: All main features require authentication via Replit Auth
 - **Modal Management**: Radix UI primitives for accessible dialogs and overlays
 - **Form Components**: Reusable form components with integrated validation feedback
 - **Data Visualization**: Custom chart components wrapping Chart.js for sleep and mood trends
