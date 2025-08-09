@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +39,12 @@ const medicationFormSchema = z.object({
   times: z.array(z.string()).min(1, "At least one time is required"),
 });
 
+const profileFormSchema = z.object({
+  displayName: z.string().min(1, "Display name is required").max(50, "Display name must be less than 50 characters"),
+});
+
 type MedicationFormData = z.infer<typeof medicationFormSchema>;
+type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 const frequencies = [
   { value: "daily", label: "Daily", times: 1 },
@@ -51,6 +56,38 @@ export default function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Profile form
+  const profileForm = useForm<ProfileFormData>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      displayName: user?.displayName || user?.firstName || '',
+    },
+  });
+
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: ProfileFormData) => {
+      const response = await apiRequest("PUT", `/api/auth/user`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: "Profile updated",
+        description: "Your display name has been saved successfully.",
+      });
+      setIsProfileDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   const [sleepForm, setSleepForm] = useState({ 
     bedtime: "", 
     wakeTime: "", 
@@ -59,6 +96,7 @@ export default function Home() {
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [moodDescription, setMoodDescription] = useState("");
@@ -347,7 +385,7 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground">
             Hello, {user?.displayName || user?.firstName || 'Friend'}! 👋
           </h1>
-          <Dialog>
+          <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="ml-3">
                 <User className="w-4 h-4" />
@@ -357,19 +395,46 @@ export default function Home() {
               <DialogHeader>
                 <DialogTitle>User Profile</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Display Name</label>
-                  <Input 
-                    placeholder="What should we call you?"
-                    defaultValue={user?.displayName || user?.firstName || ''}
-                    data-testid="input-display-name"
+              <Form {...profileForm}>
+                <form onSubmit={profileForm.handleSubmit((data) => updateProfileMutation.mutate(data))} className="space-y-4">
+                  <FormField
+                    control={profileForm.control}
+                    name="displayName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Display Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field}
+                            placeholder="What should we call you?"
+                            data-testid="input-display-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <Button className="w-full" data-testid="button-save-profile">
-                  Save Profile
-                </Button>
-              </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsProfileDialogOpen(false)}
+                      className="flex-1"
+                      data-testid="button-cancel-profile"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="flex-1" 
+                      data-testid="button-save-profile"
+                    >
+                      {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>

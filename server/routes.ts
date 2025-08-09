@@ -26,6 +26,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { displayName } = req.body;
+      
+      if (!displayName || typeof displayName !== 'string') {
+        return res.status(400).json({ message: "Display name is required" });
+      }
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        displayName: displayName.trim(),
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // For demo purposes, we'll use a hardcoded user ID (will switch to auth later)
   const DEMO_USER_ID = "demo-user";
 
