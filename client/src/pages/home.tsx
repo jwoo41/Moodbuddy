@@ -92,14 +92,21 @@ export default function Home() {
 
   const addMoodMutation = useMutation({
     mutationFn: async (data: { mood: string; description?: string }) => {
-      const response = await apiRequest("POST", "/api/mood", data);
-      return response.json();
+      if (todaysMood) {
+        // Update existing mood
+        const response = await apiRequest("PUT", `/api/mood/${todaysMood.id}`, data);
+        return response.json();
+      } else {
+        // Create new mood
+        const response = await apiRequest("POST", "/api/mood", data);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/mood"] });
       toast({
-        title: "Mood logged",
-        description: "Thanks for sharing how you're feeling!",
+        title: todaysMood ? "Mood updated!" : "Mood logged!",
+        description: todaysMood ? "Your mood has been updated." : "Thanks for sharing how you're feeling!",
       });
     },
   });
@@ -140,14 +147,21 @@ export default function Home() {
         wakeupDescriptor: data.wakeupDescriptor || null,
       };
 
-      const response = await apiRequest("POST", "/api/sleep", sleepData);
-      return response.json();
+      if (todaysSleep) {
+        // Update existing sleep entry
+        const response = await apiRequest("PUT", `/api/sleep/${todaysSleep.id}`, sleepData);
+        return response.json();
+      } else {
+        // Create new sleep entry
+        const response = await apiRequest("POST", "/api/sleep", sleepData);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sleep"] });
       toast({
-        title: "Sleep logged",
-        description: "Your sleep data has been recorded!",
+        title: todaysSleep ? "Sleep updated!" : "Sleep logged!",
+        description: todaysSleep ? "Your sleep data has been updated!" : "Your sleep data has been recorded!",
       });
       setSleepForm({ 
         bedtime: "", 
@@ -174,14 +188,25 @@ export default function Home() {
 
   const addMedicationMutation = useMutation({
     mutationFn: async (data: MedicationFormData) => {
-      const response = await apiRequest("POST", "/api/medications", data);
-      return response.json();
+      // Check if we're editing an existing medication
+      const existingMedication = medications.find(med => med.name === data.name && med.dosage === data.dosage);
+      
+      if (existingMedication) {
+        // Update existing medication
+        const response = await apiRequest("PUT", `/api/medications/${existingMedication.id}`, data);
+        return response.json();
+      } else {
+        // Create new medication
+        const response = await apiRequest("POST", "/api/medications", data);
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+      const existingMedication = medications.find(med => med.name === medForm.getValues("name"));
       toast({
-        title: "Medication added",
-        description: "Your medication has been added successfully.",
+        title: existingMedication ? "Medication updated!" : "Medication added!",
+        description: existingMedication ? "Your medication has been updated." : "Your medication has been added successfully.",
       });
       setIsMedDialogOpen(false);
       medForm.reset({
@@ -195,7 +220,7 @@ export default function Home() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to add medication. Please try again.",
+        description: "Failed to save medication. Please try again.",
         variant: "destructive",
       });
     },
@@ -358,9 +383,29 @@ export default function Home() {
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Quick Mood Check</CardTitle>
           {todaysMood ? (
-            <div className="flex items-center justify-center space-x-2 mt-4">
-              <span className="text-3xl">{moodEmojis[todaysMood.mood as keyof typeof moodEmojis]}</span>
-              <span className="text-lg font-medium">You're feeling {moodLabels[todaysMood.mood as keyof typeof moodLabels].toLowerCase()} today</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center space-x-2">
+                <span className="text-3xl">{moodEmojis[todaysMood.mood as keyof typeof moodEmojis]}</span>
+                <span className="text-lg font-medium">You're feeling {moodLabels[todaysMood.mood as keyof typeof moodLabels].toLowerCase()} today</span>
+              </div>
+              {todaysMood.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 text-center italic">
+                  "{todaysMood.description}"
+                </p>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setSelectedMood(todaysMood.mood);
+                  setMoodDescription(todaysMood.description || '');
+                  setShowMoodDescription(true);
+                }}
+                data-testid="button-edit-mood"
+                className="mx-auto"
+              >
+                Edit Mood
+              </Button>
             </div>
           ) : (
             <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">Tap an emoji to log your mood</p>
@@ -409,7 +454,7 @@ export default function Home() {
                   className="flex-1"
                   data-testid="button-submit-mood"
                 >
-                  {addMoodMutation.isPending ? "Saving..." : "Save Mood"}
+{addMoodMutation.isPending ? "Saving..." : todaysMood ? "Update Mood" : "Save Mood"}
                 </Button>
                 <Button
                   variant="outline"
@@ -510,7 +555,7 @@ export default function Home() {
                   data-testid="button-log-sleep"
                   className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
                 >
-                  {addSleepMutation.isPending ? "Saving..." : todaysSleep ? "Update Sleep" : "Log Sleep"}
+{addSleepMutation.isPending ? "Saving..." : todaysSleep ? "Update Sleep" : "Log Sleep"}
                 </Button>
                 {todaysSleep && (
                   <Button
@@ -662,7 +707,7 @@ export default function Home() {
                           className="flex-1"
                           data-testid="button-save-medication"
                         >
-                          {addMedicationMutation.isPending ? "Saving..." : "Add Medication"}
+{addMedicationMutation.isPending ? "Saving..." : "Save Medication"}
                         </Button>
                       </div>
                     </form>
@@ -690,7 +735,27 @@ export default function Home() {
             <div className="space-y-3">
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="font-medium mb-3">{med.name} - {med.dosage}</div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-medium">{med.name} - {med.dosage}</div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        // Pre-populate form with existing medication data
+                        medForm.reset({
+                          name: med.name,
+                          dosage: med.dosage,
+                          frequency: med.frequency,
+                          times: med.times || []
+                        });
+                        setSelectedFrequency(med.frequency);
+                        setIsMedDialogOpen(true);
+                      }}
+                      data-testid={`button-edit-med-${med.id}`}
+                    >
+                      Edit
+                    </Button>
+                  </div>
                   
                   {/* Visual pill representation with individual tracking */}
                   <div className="space-y-4 mb-4">
