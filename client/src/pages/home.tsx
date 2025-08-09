@@ -1518,117 +1518,160 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {/* Exercise Tracker */}
+      {/* Exercise & Weight Tracker */}
       <Card className="mb-6 max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center">
             <span className="text-2xl mr-2">💪</span>
-            Exercise Tracker
-          </CardTitle>
-          {getTodaysExercise() ? (
-            <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-              <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
-                {getTodaysExercise()?.exercised ? "💪 Exercised today!" : "😴 Rest day logged"}
-              </div>
-              <p className="text-sm text-green-600 dark:text-green-300">
-                {getTodaysExercise()?.notes && `Notes: ${getTodaysExercise()?.notes}`}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border">
-              <p className="text-sm text-orange-800 dark:text-orange-200 text-center">
-                Did you exercise today? Even a short walk counts!
-              </p>
-              <div className="flex space-x-3">
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
-                  disabled={addExerciseMutation.isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  data-testid="button-exercised-yes"
-                >
-                  💪 Yes, I exercised!
-                </Button>
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
-                  disabled={addExerciseMutation.isPending}
-                  variant="outline" 
-                  className="flex-1"
-                  data-testid="button-exercised-no"
-                >
-                  😴 Rest day
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardHeader>
-      </Card>
-
-      {/* Weight Tracker */}
-      <Card className="mb-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="text-2xl mr-2">⚖️</span>
-            Weight Tracker
+            Exercise & Weight Tracker
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          {getTodaysWeight() ? (
-            <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-              <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
-                ⚖️ Today: {getTodaysWeight()?.weight} {getTodaysWeight()?.unit}
-              </div>
-              {getTodaysWeight()?.notes && (
-                <p className="text-sm text-blue-600 dark:text-blue-300">
-                  Notes: {getTodaysWeight()?.notes}
+        <CardContent className="space-y-6">
+          {/* Exercise Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <span className="text-xl mr-2">💪</span>
+              Exercise
+            </h3>
+            {getTodaysExercise() ? (
+              <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
+                  {getTodaysExercise()?.exercised ? "💪 Exercised today!" : "😴 Rest day logged"}
+                </div>
+                <p className="text-sm text-green-600 dark:text-green-300">
+                  {getTodaysExercise()?.notes && `Notes: ${getTodaysExercise()?.notes}`}
                 </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  type="number"
-                  placeholder="Weight"
-                  value={weightForm.weight}
-                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
-                  data-testid="input-weight"
-                />
-                <Select value={weightForm.unit} onValueChange={(value) => setWeightForm({...weightForm, unit: value})}>
-                  <SelectTrigger data-testid="select-weight-unit">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lbs">lbs</SelectItem>
-                    <SelectItem value="kg">kg</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const currentExercise = getTodaysExercise();
+                    if (currentExercise) {
+                      addExerciseMutation.mutate({ 
+                        exercised: !currentExercise.exercised, 
+                        notes: currentExercise.notes || undefined 
+                      });
+                    }
+                  }}
+                  className="mt-2"
+                  data-testid="button-toggle-exercise"
+                >
+                  Change to {getTodaysExercise()?.exercised ? "Rest Day" : "Exercised"}
+                </Button>
               </div>
-              <Input
-                placeholder="Notes (optional)"
-                value={weightForm.notes}
-                onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
-                data-testid="input-weight-notes"
-              />
-              <Button
-                onClick={() => {
-                  const weight = parseFloat(weightForm.weight);
-                  if (weight > 0) {
-                    addWeightMutation.mutate({
-                      weight,
-                      unit: weightForm.unit,
-                      notes: weightForm.notes || undefined
-                    });
-                    setWeightForm({ weight: "", unit: "lbs", notes: "" });
-                  }
-                }}
-                disabled={!weightForm.weight || addWeightMutation.isPending}
-                className="w-full"
-                data-testid="button-log-weight"
-              >
-                {addWeightMutation.isPending ? "Logging..." : "⚖️ Log Weight"}
-              </Button>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border">
+                <p className="text-sm text-orange-800 dark:text-orange-200 text-center">
+                  Did you exercise today? Even a short walk counts!
+                </p>
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={() => addExerciseMutation.mutate({ exercised: true })}
+                    disabled={addExerciseMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    data-testid="button-exercised-yes"
+                  >
+                    💪 Yes, I exercised!
+                  </Button>
+                  <Button
+                    onClick={() => addExerciseMutation.mutate({ exercised: false })}
+                    disabled={addExerciseMutation.isPending}
+                    variant="outline" 
+                    className="flex-1"
+                    data-testid="button-exercised-no"
+                  >
+                    😴 Rest day
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-700"></div>
+
+          {/* Weight Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <span className="text-xl mr-2">⚖️</span>
+              Weight
+            </h3>
+            {getTodaysWeight() ? (
+              <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
+                  ⚖️ Today: {getTodaysWeight()?.weight} {getTodaysWeight()?.unit}
+                </div>
+                {getTodaysWeight()?.notes && (
+                  <p className="text-sm text-blue-600 dark:text-blue-300">
+                    Notes: {getTodaysWeight()?.notes}
+                  </p>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const todaysWeight = getTodaysWeight();
+                    if (todaysWeight) {
+                      setWeightForm({
+                        weight: todaysWeight.weight.toString(),
+                        unit: todaysWeight.unit,
+                        notes: todaysWeight.notes || ""
+                      });
+                    }
+                  }}
+                  className="mt-2"
+                  data-testid="button-edit-weight"
+                >
+                  Update Weight
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    type="number"
+                    placeholder="Weight"
+                    value={weightForm.weight}
+                    onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
+                    data-testid="input-weight"
+                  />
+                  <Select value={weightForm.unit} onValueChange={(value) => setWeightForm({...weightForm, unit: value})}>
+                    <SelectTrigger data-testid="select-weight-unit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lbs">lbs</SelectItem>
+                      <SelectItem value="kg">kg</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Input
+                  placeholder="Notes (optional)"
+                  value={weightForm.notes}
+                  onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
+                  data-testid="input-weight-notes"
+                />
+                <Button
+                  onClick={() => {
+                    const weight = parseFloat(weightForm.weight);
+                    if (weight > 0) {
+                      addWeightMutation.mutate({
+                        weight,
+                        unit: weightForm.unit,
+                        notes: weightForm.notes || undefined
+                      });
+                      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                    }
+                  }}
+                  disabled={!weightForm.weight || addWeightMutation.isPending}
+                  className="w-full"
+                  data-testid="button-log-weight"
+                >
+                  {addWeightMutation.isPending ? "Logging..." : "⚖️ Log Weight"}
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
