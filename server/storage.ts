@@ -75,7 +75,7 @@ export class MemStorage implements IStorage {
     // Create a default user for demo purposes
     this.upsertUser({
       id: "demo-user",
-      email: "demo@mindwell.app",
+      email: "demo@moodbuddy.app",
       firstName: "Sarah",
       lastName: "Demo",
       profileImageUrl: null,
