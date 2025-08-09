@@ -129,6 +129,16 @@ export default function Home() {
     queryKey: ['/api/weight'],
   });
 
+  // Run alert checks when data changes
+  useEffect(() => {
+    if (moodEntries.length > 0) {
+      checkMoodAlerts(moodEntries);
+    }
+    if (medications.length > 0 && medicationTaken.length > 0) {
+      checkMedicationConsistency(medications, medicationTaken);
+    }
+  }, [moodEntries, medications, medicationTaken]);
+
   const medForm = useForm<MedicationFormData>({
     resolver: zodResolver(medicationFormSchema),
     defaultValues: {
@@ -303,7 +313,14 @@ export default function Home() {
     );
   };
 
-  // Exercise mutations
+  const getTodaysWeight = () => {
+    const today = new Date().toDateString();
+    return weightEntries.find(entry => 
+      new Date(entry.createdAt).toDateString() === today
+    );
+  };
+
+  // Exercise form and mutations
   const addExerciseMutation = useMutation({
     mutationFn: async (data: { exercised: boolean; notes?: string }) => {
       const todaysExercise = getTodaysExercise();
@@ -457,6 +474,45 @@ export default function Home() {
         variant: "destructive",
       });
     }
+  };
+
+  // Alert system functions
+  const checkMoodAlerts = (moodEntries: MoodEntry[]) => {
+    if (moodEntries.length < 5) return;
+    
+    const recentMoods = moodEntries.slice(0, 5);
+    const lowMoodCount = recentMoods.filter(entry => 
+      entry.mood === 'sad' || entry.mood === 'very-sad'
+    ).length;
+    
+    if (lowMoodCount === 5) {
+      toast({
+        title: "🚨 Mental Health Alert",
+        description: "You've reported low mood for 5 days in a row. Consider reaching out to a healthcare professional for support.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const checkMedicationConsistency = (medications: Medication[], takenRecords: MedicationTaken[]) => {
+    const today = new Date();
+    const threeDaysAgo = new Date(today.getTime() - (3 * 24 * 60 * 60 * 1000));
+    
+    medications.forEach(med => {
+      const expectedDoses = med.frequency === 'daily' ? 3 : med.frequency === 'twice-daily' ? 6 : 9; // 3 days worth
+      const recentTaken = takenRecords.filter(record => 
+        record.medicationId === med.id &&
+        new Date(record.takenAt) >= threeDaysAgo
+      );
+      
+      if (recentTaken.length < expectedDoses * 0.7) { // Less than 70% adherence
+        toast({
+          title: "💊 Medication Reminder",
+          description: `You haven't been taking ${med.name} consistently for 3 days. Staying on track with medication is important for your health.`,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   // Test notification functionality
@@ -1456,6 +1512,120 @@ export default function Home() {
               <Button onClick={() => setIsMedDialogOpen(true)} data-testid="button-add-first-medication">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Medication
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Exercise Tracker */}
+      <Card className="mb-6 max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="text-2xl mr-2">💪</span>
+            Exercise Tracker
+          </CardTitle>
+          {getTodaysExercise() ? (
+            <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+              <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
+                {getTodaysExercise()?.exercised ? "💪 Exercised today!" : "😴 Rest day logged"}
+              </div>
+              <p className="text-sm text-green-600 dark:text-green-300">
+                {getTodaysExercise()?.notes && `Notes: ${getTodaysExercise()?.notes}`}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border">
+              <p className="text-sm text-orange-800 dark:text-orange-200 text-center">
+                Did you exercise today? Even a short walk counts!
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
+                  disabled={addExerciseMutation.isPending}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-exercised-yes"
+                >
+                  💪 Yes, I exercised!
+                </Button>
+                <Button
+                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
+                  disabled={addExerciseMutation.isPending}
+                  variant="outline" 
+                  className="flex-1"
+                  data-testid="button-exercised-no"
+                >
+                  😴 Rest day
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardHeader>
+      </Card>
+
+      {/* Weight Tracker */}
+      <Card className="mb-6 max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <span className="text-2xl mr-2">⚖️</span>
+            Weight Tracker
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {getTodaysWeight() ? (
+            <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+              <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
+                ⚖️ Today: {getTodaysWeight()?.weight} {getTodaysWeight()?.unit}
+              </div>
+              {getTodaysWeight()?.notes && (
+                <p className="text-sm text-blue-600 dark:text-blue-300">
+                  Notes: {getTodaysWeight()?.notes}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  type="number"
+                  placeholder="Weight"
+                  value={weightForm.weight}
+                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
+                  data-testid="input-weight"
+                />
+                <Select value={weightForm.unit} onValueChange={(value) => setWeightForm({...weightForm, unit: value})}>
+                  <SelectTrigger data-testid="select-weight-unit">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lbs">lbs</SelectItem>
+                    <SelectItem value="kg">kg</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input
+                placeholder="Notes (optional)"
+                value={weightForm.notes}
+                onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
+                data-testid="input-weight-notes"
+              />
+              <Button
+                onClick={() => {
+                  const weight = parseFloat(weightForm.weight);
+                  if (weight > 0) {
+                    addWeightMutation.mutate({
+                      weight,
+                      unit: weightForm.unit,
+                      notes: weightForm.notes || undefined
+                    });
+                    setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                  }
+                }}
+                disabled={!weightForm.weight || addWeightMutation.isPending}
+                className="w-full"
+                data-testid="button-log-weight"
+              >
+                {addWeightMutation.isPending ? "Logging..." : "⚖️ Log Weight"}
               </Button>
             </div>
           )}

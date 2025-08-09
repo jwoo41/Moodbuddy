@@ -377,6 +377,7 @@ export class MemStorage implements IStorage {
       id,
       createdAt: new Date(),
       notes: entry.notes || null,
+      unit: entry.unit || 'lbs',
     };
     this.weightEntries.set(id, weightEntry);
     return weightEntry;
