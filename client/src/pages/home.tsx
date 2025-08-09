@@ -296,57 +296,111 @@ export default function Home() {
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="font-medium mb-2">{med.name} - {med.dosage}</div>
-                  <div className="flex space-x-4">
-                    {med.times.map((time) => {
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* AM Dose */}
+                    {med.times.filter(time => {
+                      const hour = parseInt(time.split(':')[0]);
+                      return hour < 12;
+                    }).map((time) => {
                       const isTaken = isMedicationTakenToday(med.id, time);
-                      const timeLabel = time.startsWith('0') && parseInt(time.split(':')[0]) < 12 ? 'AM' : 'PM';
                       
                       return (
-                        <div key={time} className={`flex items-center space-x-2 p-2 rounded-lg transition-colors ${
-                          isTaken ? 'bg-green-100 dark:bg-green-900/30' : 'bg-white dark:bg-gray-700'
+                        <div key={time} className={`p-3 rounded-lg border-2 transition-all ${
+                          isTaken ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
                         }`}>
-                          <span className="text-sm font-medium">{time} {timeLabel}</span>
-                          <div className="flex space-x-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="p-1 h-auto hover:bg-green-200 dark:hover:bg-green-800"
-                              onClick={() => !isTaken && markMedicationTakenMutation.mutate({
-                                medicationId: med.id,
-                                scheduledTime: time
-                              })}
-                              disabled={isTaken || markMedicationTakenMutation.isPending}
-                              data-testid={`med-taken-${med.id}-${time}`}
-                            >
-                              <span className={`text-2xl ${isTaken ? 'opacity-100' : 'opacity-50'}`}>
-                                👍
-                              </span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="p-1 h-auto hover:bg-red-200 dark:hover:bg-red-800"
-                              onClick={() => {
-                                // For now, just show a toast - you could implement "skip dose" functionality
-                                toast({
-                                  title: "Dose noted",
-                                  description: "Marked as intentionally skipped",
-                                  variant: "destructive",
-                                });
-                              }}
-                              disabled={isTaken}
-                              data-testid={`med-skip-${med.id}-${time}`}
-                            >
-                              <span className={`text-2xl ${!isTaken ? 'opacity-50' : 'opacity-100'}`}>
-                                👎
-                              </span>
-                            </Button>
+                          <div className="text-center">
+                            <div className="font-bold text-lg mb-2">AM ({time})</div>
+                            <div className="flex justify-center space-x-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 h-auto hover:bg-green-200 dark:hover:bg-green-800"
+                                onClick={() => !isTaken && markMedicationTakenMutation.mutate({
+                                  medicationId: med.id,
+                                  scheduledTime: time
+                                })}
+                                disabled={isTaken || markMedicationTakenMutation.isPending}
+                                data-testid={`med-taken-${med.id}-${time}`}
+                              >
+                                <span className="text-3xl">👍</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 h-auto hover:bg-red-200 dark:hover:bg-red-800"
+                                onClick={() => {
+                                  toast({
+                                    title: "AM dose skipped",
+                                    description: "Marked as intentionally skipped",
+                                    variant: "destructive",
+                                  });
+                                }}
+                                disabled={isTaken}
+                                data-testid={`med-skip-${med.id}-${time}`}
+                              >
+                                <span className="text-3xl">👎</span>
+                              </Button>
+                            </div>
+                            {isTaken && (
+                              <div className="mt-2 text-green-600 dark:text-green-400 font-bold">
+                                ✅ TAKEN
+                              </div>
+                            )}
                           </div>
-                          {isTaken && (
-                            <span className="text-green-600 dark:text-green-400 text-sm font-medium">
-                              ✅ Done
-                            </span>
-                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* PM Dose */}
+                    {med.times.filter(time => {
+                      const hour = parseInt(time.split(':')[0]);
+                      return hour >= 12;
+                    }).map((time) => {
+                      const isTaken = isMedicationTakenToday(med.id, time);
+                      
+                      return (
+                        <div key={time} className={`p-3 rounded-lg border-2 transition-all ${
+                          isTaken ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
+                        }`}>
+                          <div className="text-center">
+                            <div className="font-bold text-lg mb-2">PM ({time})</div>
+                            <div className="flex justify-center space-x-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 h-auto hover:bg-green-200 dark:hover:bg-green-800"
+                                onClick={() => !isTaken && markMedicationTakenMutation.mutate({
+                                  medicationId: med.id,
+                                  scheduledTime: time
+                                })}
+                                disabled={isTaken || markMedicationTakenMutation.isPending}
+                                data-testid={`med-taken-${med.id}-${time}`}
+                              >
+                                <span className="text-3xl">👍</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 h-auto hover:bg-red-200 dark:hover:bg-red-800"
+                                onClick={() => {
+                                  toast({
+                                    title: "PM dose skipped",
+                                    description: "Marked as intentionally skipped",
+                                    variant: "destructive",
+                                  });
+                                }}
+                                disabled={isTaken}
+                                data-testid={`med-skip-${med.id}-${time}`}
+                              >
+                                <span className="text-3xl">👎</span>
+                              </Button>
+                            </div>
+                            {isTaken && (
+                              <div className="mt-2 text-green-600 dark:text-green-400 font-bold">
+                                ✅ TAKEN
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
