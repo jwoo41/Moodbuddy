@@ -6,6 +6,8 @@ MindFlow is a comprehensive mental health tracking application designed to help 
 
 The application follows a dashboard-centric approach where users can view aggregated insights from all tracking categories, with dedicated pages for detailed management of each health metric. The design emphasizes simplicity and ease of use to encourage consistent daily tracking habits.
 
+**App Store Compatibility**: The application has been configured as a Progressive Web App (PWA) with service worker caching, app manifest, and mobile optimization for potential App Store distribution through platforms like Capacitor or Expo.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
