@@ -8,6 +8,8 @@ import {
   insertMedicationSchema,
   insertMedicationTakenSchema,
   insertJournalEntrySchema,
+  insertExerciseEntrySchema,
+  insertWeightEntrySchema,
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -259,6 +261,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete journal entry" });
+    }
+  });
+
+  // Exercise entries
+  app.get("/api/exercise", async (req, res) => {
+    try {
+      const entries = await storage.getExerciseEntries(DEMO_USER_ID);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch exercise entries" });
+    }
+  });
+
+  app.post("/api/exercise", async (req, res) => {
+    try {
+      const data = insertExerciseEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
+      const entry = await storage.createExerciseEntry(data);
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid exercise entry data" });
+    }
+  });
+
+  app.put("/api/exercise/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = insertExerciseEntrySchema.partial().parse(req.body);
+      const entry = await storage.updateExerciseEntry(id, data);
+      if (!entry) {
+        return res.status(404).json({ error: "Exercise entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid exercise entry data" });
+    }
+  });
+
+  app.delete("/api/exercise/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteExerciseEntry(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Exercise entry not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete exercise entry" });
+    }
+  });
+
+  // Weight entries
+  app.get("/api/weight", async (req, res) => {
+    try {
+      const entries = await storage.getWeightEntries(DEMO_USER_ID);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch weight entries" });
+    }
+  });
+
+  app.post("/api/weight", async (req, res) => {
+    try {
+      const data = insertWeightEntrySchema.parse({ ...req.body, userId: DEMO_USER_ID });
+      const entry = await storage.createWeightEntry(data);
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid weight entry data" });
+    }
+  });
+
+  app.put("/api/weight/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = insertWeightEntrySchema.partial().parse(req.body);
+      const entry = await storage.updateWeightEntry(id, data);
+      if (!entry) {
+        return res.status(404).json({ error: "Weight entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid weight entry data" });
+    }
+  });
+
+  app.delete("/api/weight/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteWeightEntry(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Weight entry not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete weight entry" });
     }
   });
 

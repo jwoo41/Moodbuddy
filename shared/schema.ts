@@ -76,6 +76,23 @@ export const journalEntries = pgTable("journal_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const exerciseEntries = pgTable("exercise_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  exercised: boolean("exercised").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const weightEntries = pgTable("weight_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  weight: integer("weight").notNull(), // Store weight as integer (e.g., 1505 for 150.5 lbs)
+  unit: varchar("unit").notNull().default("lbs"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const upsertUserSchema = createInsertSchema(users);
 
@@ -109,6 +126,16 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
   updatedAt: true,
 });
 
+export const insertExerciseEntrySchema = createInsertSchema(exerciseEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -127,3 +154,9 @@ export type InsertMedicationTaken = z.infer<typeof insertMedicationTakenSchema>;
 
 export type JournalEntry = typeof journalEntries.$inferSelect;
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
+
+export type ExerciseEntry = typeof exerciseEntries.$inferSelect;
+export type InsertExerciseEntry = z.infer<typeof insertExerciseEntrySchema>;
+
+export type WeightEntry = typeof weightEntries.$inferSelect;
+export type InsertWeightEntry = z.infer<typeof insertWeightEntrySchema>;
