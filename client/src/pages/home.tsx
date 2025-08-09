@@ -447,41 +447,63 @@ export default function Home() {
     if (!("Notification" in window)) {
       toast({
         title: "Notifications not supported",
-        description: "Your browser doesn't support notifications. Try using Chrome, Firefox, or Safari.",
-        variant: "destructive",
+        description: "Your browser doesn't support notifications. App reminders will still work.",
       });
+      // Enable app-only notifications as fallback
+      setNotificationsEnabled(true);
       return;
     }
 
     try {
-      const permission = await Notification.requestPermission();
+      // Check current permission status
+      let permission = Notification.permission;
+      
+      if (permission === "default") {
+        // Request permission only if not already decided
+        permission = await Notification.requestPermission();
+      }
+      
       if (permission === "granted") {
         setNotificationsEnabled(true);
         scheduleAllMedicationNotifications();
         toast({
           title: "Notifications enabled",
-          description: "You'll now receive reminders for medications and sleep times",
+          description: "You'll receive browser notifications for medications and sleep reminders",
         });
+        
+        // Send confirmation notification
+        try {
+          new Notification("MoodBuddy Notifications Active", {
+            body: "You'll receive reminders like this",
+            icon: '/icon-192.svg',
+            tag: 'setup-confirmation',
+          });
+        } catch (notifError) {
+          console.log("Notification creation failed, but permissions granted");
+        }
+        
       } else if (permission === "denied") {
         toast({
-          title: "Notifications blocked",
-          description: "To enable: Click the lock/bell icon in your address bar → Allow notifications → Refresh page",
-          variant: "destructive",
+          title: "Browser notifications blocked",
+          description: "In-app reminders will still work. To enable browser notifications: click the lock icon in your address bar → Allow notifications",
         });
+        // Still enable app notifications as fallback
+        setNotificationsEnabled(true);
       } else {
         toast({
-          title: "Notifications permission needed",
-          description: "Please allow notifications when prompted to receive reminders",
-          variant: "destructive",
+          title: "Permission not granted",
+          description: "App reminders will work without browser notifications",
         });
+        setNotificationsEnabled(true);
       }
     } catch (error) {
       console.error('Notification setup error:', error);
       toast({
-        title: "Notification setup failed",
-        description: "Browser may have blocked the request. Try: Settings → Site Permissions → Notifications → Allow",
-        variant: "destructive",
+        title: "Using app reminders only",
+        description: "Browser notifications unavailable, but medication tracking reminders will still work in the app",
       });
+      // Always enable app-level notifications as fallback
+      setNotificationsEnabled(true);
     }
   };
 
@@ -539,28 +561,41 @@ export default function Home() {
   // Test notification functionality
   const testNotification = () => {
     if ("Notification" in window && Notification.permission === "granted") {
-      const notification = new Notification("🔔 Test Notification", {
-        body: "Notifications are working! You'll receive reminders like this.",
-        icon: '/icon-192.svg',
-        tag: 'test-notification',
-      });
+      try {
+        const notification = new Notification("🔔 Test Notification", {
+          body: "Notifications are working! You'll receive reminders like this.",
+          icon: '/icon-192.svg',
+          tag: 'test-notification',
+        });
 
-      setTimeout(() => notification.close(), 5000);
-      
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
+        setTimeout(() => {
+          try {
+            notification.close();
+          } catch (e) {
+            // Notification might already be closed
+          }
+        }, 5000);
+        
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
 
-      toast({
-        title: "Test notification sent",
-        description: "Check if you received the notification",
-      });
+        toast({
+          title: "Test notification sent",
+          description: "Check if you received the browser notification",
+        });
+      } catch (error) {
+        console.error("Test notification failed:", error);
+        toast({
+          title: "Browser notification test failed",
+          description: "App reminders will still work for your medications",
+        });
+      }
     } else {
       toast({
-        title: "Cannot test notifications",
-        description: "Please enable notifications first",
-        variant: "destructive",
+        title: "App reminder test",
+        description: "This is how medication reminders will appear in the app. Browser notifications need to be enabled separately.",
       });
     }
   };
