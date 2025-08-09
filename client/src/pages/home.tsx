@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,6 +93,7 @@ export default function Home() {
     wakeTime: ""
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [scheduledNotifications, setScheduledNotifications] = useState<number[]>([]);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState("");
@@ -197,9 +198,7 @@ export default function Home() {
       });
       setSleepForm({ 
         bedtime: "", 
-        wakeTime: "", 
-        bedtimeDescriptor: "", 
-        wakeupDescriptor: "" 
+        wakeTime: ""
       });
     },
   });
@@ -322,32 +321,72 @@ export default function Home() {
   const todaysMood = getTodaysMood();
   const todaysSleep = getTodaysSleep();
 
-  // Request notification permission and set up medication reminders
+  // Clear all scheduled notifications when component unmounts or notifications are disabled
+  useEffect(() => {
+    return () => {
+      scheduledNotifications.forEach(id => clearTimeout(id));
+    };
+  }, [scheduledNotifications]);
+
+  // Re-schedule notifications when medications change or notifications are enabled
+  useEffect(() => {
+    if (notificationsEnabled && medications.length > 0) {
+      scheduleAllMedicationNotifications();
+    }
+  }, [medications, notificationsEnabled]);
+
   const setupNotifications = async () => {
-    if ('Notification' in window) {
+    if ("Notification" in window) {
       const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
+      if (permission === "granted") {
         setNotificationsEnabled(true);
+        scheduleAllMedicationNotifications();
         toast({
           title: "Notifications enabled",
-          description: "You'll get reminders for your medications",
+          description: "You'll receive medication reminders at scheduled times",
         });
-        
-        // Schedule notifications for medications
-        medications.forEach(med => {
-          if (med.times && med.times.length > 0) {
-            med.times.forEach(time => {
-              scheduleNotification(med.name, time);
-            });
-          }
+      } else if (permission === "denied") {
+        toast({
+          title: "Notifications blocked",
+          description: "Please enable notifications in your browser settings to receive reminders",
+          variant: "destructive",
         });
       }
+    } else {
+      toast({
+        title: "Notifications not supported",
+        description: "Your browser doesn't support notifications",
+        variant: "destructive",
+      });
     }
   };
 
-  const scheduleNotification = (medName: string, time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
+  const scheduleAllMedicationNotifications = () => {
+    // Clear existing notifications
+    scheduledNotifications.forEach(id => clearTimeout(id));
+    setScheduledNotifications([]);
+    
+    const newNotificationIds: number[] = [];
+    
+    medications.forEach(medication => {
+      medication.times?.forEach(time => {
+        const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage);
+        if (notificationId) {
+          newNotificationIds.push(notificationId);
+        }
+      });
+    });
+    
+    setScheduledNotifications(newNotificationIds);
+  };
+
+  const scheduleMedicationNotification = (medicationName: string, time: string, dosage?: string): number | null => {
+    if (!notificationsEnabled) return null;
+    
     const now = new Date();
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create notification time for today
     const notificationTime = new Date();
     notificationTime.setHours(hours, minutes, 0, 0);
     
@@ -358,17 +397,34 @@ export default function Home() {
     
     const timeUntilNotification = notificationTime.getTime() - now.getTime();
     
-    setTimeout(() => {
-      if (notificationsEnabled && 'Notification' in window) {
-        new Notification(`Time to take ${medName}`, {
-          body: `It's time for your ${time} dose`,
-          icon: '/favicon.ico',
+    const timeoutId = window.setTimeout(() => {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification(`💊 Time for ${medicationName}`, {
+          body: `Take your ${dosage || ''} dose now`,
+          icon: '/icon-192.svg',
+          tag: `medication-${medicationName}-${time}`,
+          badge: '/icon-192.svg',
+          requireInteraction: true,
         });
+
+        // Auto-close notification after 30 seconds
+        setTimeout(() => notification.close(), 30000);
+
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
       }
       
-      // Schedule for next day
-      setTimeout(() => scheduleNotification(medName, time), 24 * 60 * 60 * 1000);
+      // Schedule the next notification for tomorrow at the same time
+      const nextNotificationId = scheduleMedicationNotification(medicationName, time, dosage);
+      if (nextNotificationId) {
+        setScheduledNotifications(prev => [...prev.filter(id => id !== timeoutId), nextNotificationId]);
+      }
     }, timeUntilNotification);
+    
+    return timeoutId;
   };
 
   return (
