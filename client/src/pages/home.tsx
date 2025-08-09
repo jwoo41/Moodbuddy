@@ -168,6 +168,12 @@ export default function Home() {
         throw new Error("Both bedtime and wake time are required");
       }
 
+      // Validate time format (HH:MM)
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(data.bedtime) || !timeRegex.test(data.wakeTime)) {
+        throw new Error("Please enter valid times in HH:MM format");
+      }
+
       const bedtime = new Date(`${new Date().toDateString()} ${data.bedtime}:00`);
       const wakeTime = new Date(`${new Date().toDateString()} ${data.wakeTime}:00`);
       
@@ -180,7 +186,7 @@ export default function Home() {
 
       // Validate reasonable sleep duration (1-16 hours)
       if (hoursSlept < 1 || hoursSlept > 16) {
-        throw new Error("Sleep duration must be between 1 and 16 hours");
+        throw new Error("Sleep duration must be between 1 and 16 hours. Please check your times.");
       }
 
       const sleepData = {
@@ -209,6 +215,13 @@ export default function Home() {
       setSleepForm({ 
         bedtime: "", 
         wakeTime: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save sleep data. Please try again.",
+        variant: "destructive",
       });
     },
   });
@@ -258,10 +271,10 @@ export default function Home() {
       });
       setSelectedFrequency("");
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to save medication. Please try again.",
+        description: error.message || "Failed to save medication. Please try again.",
         variant: "destructive",
       });
     },
@@ -918,10 +931,10 @@ export default function Home() {
                 <Weight className="w-5 h-5 mr-2 text-blue-600" />
                 <span className="font-medium">Weight Tracking</span>
               </div>
-              {weightEntries.length > 0 && (
+              {weightEntries.length > 0 && weightEntries[0] && (
                 <span className="text-sm text-muted-foreground">
-                  Last: {weightEntries[0]?.weight / 10} {weightEntries[0]?.unit} 
-                  ({new Date(weightEntries[0]?.createdAt).toLocaleDateString()})
+                  Last: {weightEntries[0].weight / 10} {weightEntries[0].unit} 
+                  ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
                 </span>
               )}
             </div>
