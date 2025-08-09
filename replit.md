@@ -13,7 +13,7 @@ The application follows a dashboard-centric approach where users can view aggreg
 Preferred communication style: Simple, everyday language.
 App name preference: "MoodBuddy" (updated from "MindFlow" → "MindWell" → "MoodBuddy")
 Home page interface preference: Simple, emoji-focused design with prominent mood tracking
-Medication tracking preference: Thumbs up/down emojis with green checkmarks when completed, built-in notifications for medication reminders
+Medication tracking preference: Clear AM/PM sections with large thumbs up/down emojis, green highlighting when taken, all medication tracking on home page (not separate screen)
 Sleep tracking preference: Quick and easy logging without quality rating for faster entry
 
 ## System Architecture
