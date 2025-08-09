@@ -153,7 +153,12 @@ export default function Home() {
         description: "Your medication has been added successfully.",
       });
       setIsMedDialogOpen(false);
-      medForm.reset();
+      medForm.reset({
+        name: "",
+        dosage: "",
+        frequency: "",
+        times: [],
+      });
       setSelectedFrequency("");
     },
     onError: () => {
@@ -208,10 +213,21 @@ export default function Home() {
       const defaultTimes = generateTimeSlots(freqData.times);
       medForm.setValue("frequency", frequency);
       medForm.setValue("times", defaultTimes);
+      // Force re-render by triggering form validation
+      medForm.trigger("times");
     }
   };
 
   const onMedSubmit = (data: MedicationFormData) => {
+    console.log("Submitting medication:", data);
+    if (!data.times || data.times.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one time for your medication.",
+        variant: "destructive",
+      });
+      return;
+    }
     addMedicationMutation.mutate(data);
   };
 
@@ -434,19 +450,24 @@ export default function Home() {
                         <div>
                           <FormLabel>Times</FormLabel>
                           <div className="space-y-2 mt-2">
-                            {medForm.watch("times").map((time, index) => (
-                              <Input
-                                key={index}
-                                type="time"
-                                value={time}
-                                onChange={(e) => {
-                                  const times = [...medForm.getValues("times")];
-                                  times[index] = e.target.value;
-                                  medForm.setValue("times", times);
-                                }}
-                                data-testid={`input-medication-time-${index}`}
-                              />
-                            ))}
+                            {medForm.watch("times")?.map((time, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <Input
+                                  type="time"
+                                  value={time || ""}
+                                  onChange={(e) => {
+                                    const times = [...(medForm.getValues("times") || [])];
+                                    times[index] = e.target.value;
+                                    medForm.setValue("times", times);
+                                  }}
+                                  data-testid={`input-medication-time-${index}`}
+                                  className="flex-1"
+                                />
+                                <span className="text-sm text-muted-foreground min-w-12">
+                                  {parseInt(time?.split(':')[0] || '0') < 12 ? 'AM' : 'PM'}
+                                </span>
+                              </div>
+                            )) || []}
                           </div>
                         </div>
                       )}
@@ -457,7 +478,12 @@ export default function Home() {
                           variant="outline"
                           onClick={() => {
                             setIsMedDialogOpen(false);
-                            medForm.reset();
+                            medForm.reset({
+                              name: "",
+                              dosage: "",
+                              frequency: "",
+                              times: [],
+                            });
                             setSelectedFrequency("");
                           }}
                           className="flex-1"
