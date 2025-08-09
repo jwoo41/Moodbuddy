@@ -714,7 +714,10 @@ export default function Home() {
   };
 
   const scheduleMedicationNotification = (medicationName: string, time: string, dosage?: string): number | null => {
-    if (!notificationsEnabled) return null;
+    if (!notificationsEnabled) {
+      console.log(`Notifications disabled, skipping ${medicationName} at ${time}`);
+      return null;
+    }
     
     const now = new Date();
     const [hours, minutes] = time.split(':').map(Number);
@@ -1262,7 +1265,14 @@ export default function Home() {
               Today's Medications
             </div>
             <div className="flex items-center space-x-2">
-              {!notificationsEnabled && (
+              {notificationsEnabled ? (
+                <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                  <Bell className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm text-green-700 dark:text-green-300 font-medium">
+                    Reminders Active
+                  </span>
+                </div>
+              ) : (
                 <Button
                   size="sm"
                   variant="outline"
