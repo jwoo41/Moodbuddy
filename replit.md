@@ -19,6 +19,10 @@ The application follows a dashboard-centric approach where users can view aggreg
 - Implemented exercise tracking widget with yes/no logging and visual feedback (💪/😴 emojis)
 - Added weight tracking functionality with lbs/kg unit support and historical tracking
 - Enhanced sleep tracking interface with simplified bedtime (🛏️) and wake-up time (⏰) inputs
+- **Alert Sharing System**: Users can share health alerts with emergency contacts via email/phone
+- **User Onboarding**: Comprehensive setup flow captures contact info, emergency contacts, and alert preferences
+- **Health Pattern Monitoring**: Automatic detection of low mood patterns (5+ days) and medication non-compliance (70% adherence over 3 days)
+- **Emergency Contact Integration**: Optional alert sharing with trusted contacts for concerning health patterns
 
 ## User Preferences
 
