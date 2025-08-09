@@ -162,14 +162,23 @@ export default function Mood() {
   };
 
   const getMoodStats = () => {
+    if (!moodEntries || moodEntries.length === 0) {
+      return {
+        totalEntries: 0,
+        mostCommon: undefined,
+        thisWeek: 0,
+      };
+    }
+
     const moodCounts = moodEntries.reduce((acc, entry) => {
       acc[entry.mood] = (acc[entry.mood] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const mostCommon = Object.entries(moodCounts).reduce((a, b) => 
-      moodCounts[a[0]] > moodCounts[b[0]] ? a : b
-    )?.[0];
+    const entries = Object.entries(moodCounts);
+    const mostCommon = entries.length > 0 
+      ? entries.reduce((a, b) => moodCounts[a[0]] > moodCounts[b[0]] ? a : b)[0]
+      : undefined;
 
     return {
       totalEntries: moodEntries.length,
