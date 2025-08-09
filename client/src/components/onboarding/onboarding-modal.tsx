@@ -28,6 +28,7 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       displayName: userName || "",
+      email: "",
       phoneNumber: "",
       emergencyContactName: "",
       emergencyContactEmail: "",
@@ -91,6 +92,20 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
                       <FormLabel>Display Name *</FormLabel>
                       <FormControl>
                         <Input placeholder="What should we call you?" {...field} data-testid="input-display-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address *</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="your-email@example.com" {...field} data-testid="input-email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
