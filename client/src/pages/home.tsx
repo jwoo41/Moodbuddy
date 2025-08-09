@@ -544,6 +544,7 @@ export default function Home() {
           <CardTitle className="flex items-center">
             <span className="text-2xl mr-2">😴</span>
             Sleep Tracker
+            <span className="ml-2 text-sm text-muted-foreground font-normal">🕐 Track your bedtime & wake up time</span>
           </CardTitle>
           {todaysSleep ? (
             <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
@@ -581,36 +582,56 @@ export default function Home() {
           
           {/* Sleep form - always show if no sleep logged or editing */}
           {(!todaysSleep || sleepForm.bedtime || sleepForm.wakeTime) && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="time"
-                  placeholder="Bedtime"
-                  value={sleepForm.bedtime}
-                  onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
-                  data-testid="input-bedtime"
-                />
-                <Input
-                  type="time"
-                  placeholder="Wake time"
-                  value={sleepForm.wakeTime}
-                  onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
-                  data-testid="input-waketime"
-                />
+            <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    🛏️ Bedtime
+                    <span className="ml-2 text-xs text-muted-foreground">(When you went to bed)</span>
+                  </label>
+                  <Input
+                    type="time"
+                    value={sleepForm.bedtime}
+                    onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
+                    data-testid="input-bedtime"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    ⏰ Wake Up Time
+                    <span className="ml-2 text-xs text-muted-foreground">(When you woke up)</span>
+                  </label>
+                  <Input
+                    type="time"
+                    value={sleepForm.wakeTime}
+                    onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
+                    data-testid="input-waketime"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  placeholder="How did you feel going to bed?"
-                  value={sleepForm.bedtimeDescriptor}
-                  onChange={(e) => setSleepForm({...sleepForm, bedtimeDescriptor: e.target.value})}
-                  data-testid="input-bedtime-descriptor"
-                />
-                <Input
-                  placeholder="How did you feel waking up?"
-                  value={sleepForm.wakeupDescriptor}
-                  onChange={(e) => setSleepForm({...sleepForm, wakeupDescriptor: e.target.value})}
-                  data-testid="input-wakeup-descriptor"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    😴 Bedtime Feeling
+                  </label>
+                  <Input
+                    placeholder="How did you feel going to bed?"
+                    value={sleepForm.bedtimeDescriptor}
+                    onChange={(e) => setSleepForm({...sleepForm, bedtimeDescriptor: e.target.value})}
+                    data-testid="input-bedtime-descriptor"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center mb-2">
+                    🌅 Wake Up Feeling
+                  </label>
+                  <Input
+                    placeholder="How did you feel waking up?"
+                    value={sleepForm.wakeupDescriptor}
+                    onChange={(e) => setSleepForm({...sleepForm, wakeupDescriptor: e.target.value})}
+                    data-testid="input-wakeup-descriptor"
+                  />
+                </div>
               </div>
               
               <div className="flex space-x-2">
@@ -620,7 +641,7 @@ export default function Home() {
                   data-testid="button-log-sleep"
                   className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
                 >
-{addSleepMutation.isPending ? "Saving..." : todaysSleep ? "Update Sleep" : "Log Sleep"}
+                  {addSleepMutation.isPending ? "💤 Saving..." : todaysSleep ? "💤 Update Sleep" : "💤 Log Sleep"}
                 </Button>
                 {todaysSleep && (
                   <Button
