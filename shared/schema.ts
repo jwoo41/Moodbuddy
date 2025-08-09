@@ -22,6 +22,13 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   displayName: varchar("display_name"), // User's preferred display name
   profileImageUrl: varchar("profile_image_url"),
+  phoneNumber: varchar("phone_number"),
+  emergencyContactEmail: varchar("emergency_contact_email"),
+  emergencyContactPhone: varchar("emergency_contact_phone"),
+  emergencyContactName: varchar("emergency_contact_name"),
+  alertsEnabled: boolean("alerts_enabled").default(true),
+  shareAlertsEnabled: boolean("share_alerts_enabled").default(false),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -93,6 +100,18 @@ export const weightEntries = pgTable("weight_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const alertNotifications = pgTable("alert_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  alertType: varchar("alert_type").notNull(), // 'mood_low', 'medication_non_compliance'
+  alertMessage: text("alert_message").notNull(),
+  sentToUser: boolean("sent_to_user").default(false),
+  sentToEmergencyContact: boolean("sent_to_emergency_contact").default(false),
+  emergencyContactEmail: varchar("emergency_contact_email"),
+  emergencyContactPhone: varchar("emergency_contact_phone"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const upsertUserSchema = createInsertSchema(users);
 
@@ -136,6 +155,22 @@ export const insertWeightEntrySchema = createInsertSchema(weightEntries).omit({
   createdAt: true,
 });
 
+export const insertAlertNotificationSchema = createInsertSchema(alertNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Onboarding schema for capturing initial user info
+export const onboardingSchema = z.object({
+  displayName: z.string().min(1, "Display name is required"),
+  phoneNumber: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactEmail: z.string().email().optional().or(z.literal("")),
+  emergencyContactPhone: z.string().optional(),
+  shareAlertsEnabled: z.boolean().default(false),
+  alertsEnabled: z.boolean().default(true),
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -160,3 +195,8 @@ export type InsertExerciseEntry = z.infer<typeof insertExerciseEntrySchema>;
 
 export type WeightEntry = typeof weightEntries.$inferSelect;
 export type InsertWeightEntry = z.infer<typeof insertWeightEntrySchema>;
+
+export type AlertNotification = typeof alertNotifications.$inferSelect;
+export type InsertAlertNotification = z.infer<typeof insertAlertNotificationSchema>;
+
+export type OnboardingData = z.infer<typeof onboardingSchema>;

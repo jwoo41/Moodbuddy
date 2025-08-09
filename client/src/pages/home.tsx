@@ -15,6 +15,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken, ExerciseEntry, WeightEntry } from "@shared/schema";
+import OnboardingModal from "@/components/onboarding/onboarding-modal";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -56,6 +57,14 @@ export default function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (user && !user.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
 
   // Profile form
   const profileForm = useForm<ProfileFormData>({
@@ -1754,6 +1763,15 @@ export default function Home() {
 
       {/* Bottom spacing for mobile nav */}
       <div className="h-20 md:h-0"></div>
+
+      {/* Dynamic import to prevent bundle size issues */}
+      {showOnboarding && (
+        <OnboardingModal 
+          open={showOnboarding} 
+          onComplete={() => setShowOnboarding(false)}
+          userName={user?.firstName || user?.displayName || ""}
+        />
+      )}
     </div>
   );
 }

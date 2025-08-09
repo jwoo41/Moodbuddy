@@ -1,5 +1,13 @@
 import {
   users,
+  moodEntries,
+  sleepEntries,
+  medications,
+  medicationTaken,
+  journalEntries,
+  exerciseEntries,
+  weightEntries,
+  alertNotifications,
   type User,
   type UpsertUser,
   type MoodEntry,
@@ -16,9 +24,11 @@ import {
   type InsertExerciseEntry,
   type WeightEntry,
   type InsertWeightEntry,
+  type AlertNotification,
+  type InsertAlertNotification,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -72,6 +82,11 @@ export interface IStorage {
   getWeightEntryById(id: string): Promise<WeightEntry | undefined>;
   updateWeightEntry(id: string, entry: Partial<InsertWeightEntry>): Promise<WeightEntry | undefined>;
   deleteWeightEntry(id: string): Promise<boolean>;
+
+  // Alert notifications
+  getAlertNotifications(userId: string, limit?: number): Promise<AlertNotification[]>;
+  createAlertNotification(alert: InsertAlertNotification): Promise<AlertNotification>;
+  markAlertAsSent(id: string, sentToUser: boolean, sentToEmergencyContact: boolean): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -83,6 +98,7 @@ export class MemStorage implements IStorage {
   private journalEntries: Map<string, JournalEntry>;
   private exerciseEntries: Map<string, ExerciseEntry>;
   private weightEntries: Map<string, WeightEntry>;
+  private alertNotifications: Map<string, AlertNotification>;
 
   constructor() {
     this.users = new Map();
@@ -93,6 +109,7 @@ export class MemStorage implements IStorage {
     this.journalEntries = new Map();
     this.exerciseEntries = new Map();
     this.weightEntries = new Map();
+    this.alertNotifications = new Map();
 
     // Create a default user for demo purposes
     this.upsertUser({
@@ -102,6 +119,13 @@ export class MemStorage implements IStorage {
       lastName: "Demo",
       displayName: "Sarah",
       profileImageUrl: null,
+      phoneNumber: null,
+      emergencyContactEmail: null,
+      emergencyContactPhone: null,
+      emergencyContactName: null,
+      alertsEnabled: true,
+      shareAlertsEnabled: false,
+      onboardingCompleted: false,
     });
   }
 
@@ -398,6 +422,39 @@ export class MemStorage implements IStorage {
   async deleteWeightEntry(id: string): Promise<boolean> {
     return this.weightEntries.delete(id);
   }
+
+  // Alert notifications
+  async getAlertNotifications(userId: string, limit = 50): Promise<AlertNotification[]> {
+    const alerts = Array.from(this.alertNotifications.values())
+      .filter((alert) => alert.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+    return alerts;
+  }
+
+  async createAlertNotification(alert: InsertAlertNotification): Promise<AlertNotification> {
+    const id = randomUUID();
+    const alertNotification: AlertNotification = {
+      ...alert,
+      id,
+      createdAt: new Date(),
+      sentToUser: alert.sentToUser || false,
+      sentToEmergencyContact: alert.sentToEmergencyContact || false,
+      emergencyContactEmail: alert.emergencyContactEmail || null,
+      emergencyContactPhone: alert.emergencyContactPhone || null,
+    };
+    this.alertNotifications.set(id, alertNotification);
+    return alertNotification;
+  }
+
+  async markAlertAsSent(id: string, sentToUser: boolean, sentToEmergencyContact: boolean): Promise<boolean> {
+    const alert = this.alertNotifications.get(id);
+    if (!alert) return false;
+    
+    const updated = { ...alert, sentToUser, sentToEmergencyContact };
+    this.alertNotifications.set(id, updated);
+    return true;
+  }
 }
 
 // Database storage implementation for Replit Auth
@@ -462,6 +519,11 @@ export class DatabaseStorage implements IStorage {
   async getWeightEntryById(): Promise<WeightEntry | undefined> { throw new Error("Not implemented for database yet"); }
   async updateWeightEntry(): Promise<WeightEntry | undefined> { throw new Error("Not implemented for database yet"); }
   async deleteWeightEntry(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
+
+  // Alert notifications - Database implementation placeholders
+  async getAlertNotifications(): Promise<AlertNotification[]> { throw new Error("Not implemented for database yet"); }
+  async createAlertNotification(): Promise<AlertNotification> { throw new Error("Not implemented for database yet"); }
+  async markAlertAsSent(): Promise<boolean> { throw new Error("Not implemented for database yet"); }
 }
 
 // Use MemStorage for now, switch to DatabaseStorage later

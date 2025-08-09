@@ -358,6 +358,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Alert notifications endpoints
+  app.get("/api/alerts", async (req, res) => {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      // Use DEMO_USER_ID for now since we're using memory storage
+      const alerts = await storage.getAlertNotifications(DEMO_USER_ID);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+  app.post("/api/alerts", async (req, res) => {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const alertData = req.body;
+      
+      // Get user from storage to check alert preferences
+      const userFromStorage = await storage.getUser(DEMO_USER_ID);
+      
+      const alert = await storage.createAlertNotification({
+        userId: DEMO_USER_ID,
+        alertType: alertData.alertType,
+        alertMessage: alertData.alertMessage,
+        emergencyContactEmail: alertData.emergencyContactEmail || null,
+        emergencyContactPhone: alertData.emergencyContactPhone || null,
+        sentToUser: false,
+        sentToEmergencyContact: false,
+      });
+
+      // If user has alert sharing enabled and emergency contact, send alert
+      if (userFromStorage?.shareAlertsEnabled && (userFromStorage?.emergencyContactEmail || userFromStorage?.emergencyContactPhone)) {
+        try {
+          // In a real app, this would send email/SMS
+          // For now, we'll just mark as sent to emergency contact
+          await storage.markAlertAsSent(alert.id, true, true);
+          console.log(`Alert shared with emergency contact: ${userFromStorage.emergencyContactEmail || userFromStorage.emergencyContactPhone}`);
+        } catch (error) {
+          console.error("Failed to send alert to emergency contact:", error);
+        }
+      } else {
+        await storage.markAlertAsSent(alert.id, true, false);
+      }
+
+      res.json(alert);
+    } catch (error) {
+      console.error("Error creating alert:", error);
+      res.status(500).json({ message: "Failed to create alert" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
