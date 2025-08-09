@@ -8,13 +8,31 @@ The application follows a dashboard-centric approach where users can view aggreg
 
 **App Store Compatibility**: The application has been configured as a Progressive Web App (PWA) with service worker caching, app manifest, and mobile optimization for potential App Store distribution through platforms like Capacitor or Expo.
 
+**Recent Updates (August 2025)**: 
+- Enhanced mood tracking with optional description field for detailed emotional context
+- Added bedtime/wake-up descriptor fields to sleep logging for better sleep quality insights
+- Implemented visual pill representation showing 1-3 pills based on medication frequency
+- Added personalized header with user's display name and profile management
+- Improved medication tracking UI with large thumbs up/down buttons and clear labeling
+- Enhanced database schema to support mood descriptions, sleep descriptors, and user display names
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 App name preference: "MoodBuddy" (updated from "MindFlow" → "MindWell" → "MoodBuddy")
 Home page interface preference: Simple, emoji-focused design with prominent mood tracking
-Medication tracking preference: Clear AM/PM sections with large thumbs up/down emojis, green highlighting when taken, all medication tracking on home page (not separate screen)
-Sleep tracking preference: Quick and easy logging without quality rating for faster entry
+Medication tracking preference: 
+- Visual pill display (2 pills for twice daily, 1 pill for once daily medications)
+- Large thumbs up/down tracking buttons with "Taken"/"Skip" labels
+- Clear schedule display with times shown under each pill
+- All medication tracking on home page (not separate screen)
+Sleep tracking preference: 
+- Quick and easy logging with bedtime and wake-up descriptor fields
+- Enhanced sleep form with "How did you feel going to bed?" and "How did you feel waking up?" inputs
+Personalization preference: 
+- Personalized header with user's display name
+- User profile management for setting custom display name
+- Mood tracking with optional description field for detailed emotional context
 
 ## System Architecture
 
@@ -37,10 +55,10 @@ Sleep tracking preference: Quick and easy logging without quality rating for fas
 
 ### Database Schema Design
 The application uses a PostgreSQL database with the following core entities:
-- **Users**: Replit Auth integration with email, names, profile images, and timestamps
+- **Users**: Replit Auth integration with email, names, displayName for personalization, profile images, and timestamps
 - **Sessions**: Secure session storage table for Replit Auth token management
-- **Mood Entries**: Categorical mood tracking with notes and timestamps
-- **Sleep Entries**: Comprehensive sleep data including bedtime, wake time, duration, and quality ratings
+- **Mood Entries**: Categorical mood tracking with optional description field, notes and timestamps
+- **Sleep Entries**: Comprehensive sleep data including bedtime, wake time, duration, quality ratings, bedtime/wakeup descriptors
 - **Medications**: User medication management with dosage and scheduling information
 - **Medication Taken**: Adherence tracking for scheduled medications
 - **Journal Entries**: Free-form text entries with optional titles and timestamps
