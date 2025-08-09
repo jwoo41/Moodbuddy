@@ -166,15 +166,29 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
                 <FormField
                   control={form.control}
                   name="emergencyContactEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="their-email@example.com" {...field} data-testid="input-emergency-email" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const shareAlertsEnabled = form.watch("shareAlertsEnabled");
+                    return (
+                      <FormItem>
+                        <FormLabel>
+                          Contact Email{shareAlertsEnabled ? " *" : ""}
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="their-email@example.com" 
+                            {...field} 
+                            data-testid="input-emergency-email" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {shareAlertsEnabled && (
+                          <p className="text-xs text-orange-600 dark:text-orange-400">
+                            Required when sharing alerts is enabled
+                          </p>
+                        )}
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
@@ -239,7 +253,6 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
                         <Switch 
                           checked={field.value} 
                           onCheckedChange={field.onChange} 
-                          disabled={!form.watch("emergencyContactEmail") && !form.watch("emergencyContactPhone")}
                           data-testid="switch-share-alerts"
                         />
                       </FormControl>
@@ -248,10 +261,10 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
                   )}
                 />
 
-                {!form.watch("emergencyContactEmail") && !form.watch("emergencyContactPhone") && (
-                  <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+                {form.watch("shareAlertsEnabled") && !form.watch("emergencyContactEmail") && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                     <AlertTriangle className="w-4 h-4 inline mr-2" />
-                    Add an emergency contact above to enable alert sharing
+                    Emergency contact email is required when sharing alerts is enabled
                   </div>
                 )}
               </CardContent>

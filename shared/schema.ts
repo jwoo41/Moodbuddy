@@ -171,6 +171,15 @@ export const onboardingSchema = z.object({
   emergencyContactPhone: z.string().optional(),
   shareAlertsEnabled: z.boolean().default(false),
   alertsEnabled: z.boolean().default(true),
+}).refine((data) => {
+  // If sharing alerts is enabled, emergency contact email is required
+  if (data.shareAlertsEnabled && !data.emergencyContactEmail) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Emergency contact email is required when sharing alerts is enabled",
+  path: ["emergencyContactEmail"],
 });
 
 // Types
