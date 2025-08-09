@@ -508,13 +508,25 @@ export default function Home() {
     const threeDaysAgo = new Date(today.getTime() - (3 * 24 * 60 * 60 * 1000));
     
     medications.forEach(med => {
+      // Check if medication was created more than 3 days ago
+      const medicationCreated = new Date(med.createdAt);
+      const daysSinceCreated = Math.floor((today.getTime() - medicationCreated.getTime()) / (24 * 60 * 60 * 1000));
+      
+      // Only check adherence if medication has been tracked for at least 3 full days
+      if (daysSinceCreated < 3) {
+        return; // Skip adherence check for new medications
+      }
+      
       const expectedDoses = med.frequency === 'daily' ? 3 : med.frequency === 'twice-daily' ? 6 : 9; // 3 days worth
       const recentTaken = takenRecords.filter(record => 
         record.medicationId === med.id &&
         new Date(record.takenAt) >= threeDaysAgo
       );
       
-      if (recentTaken.length < expectedDoses * 0.7) { // Less than 70% adherence
+      // Calculate adherence percentage
+      const adherenceRate = recentTaken.length / expectedDoses;
+      
+      if (adherenceRate < 0.7) { // Less than 70% adherence over 3 days
         toast({
           title: "💊 Medication Reminder",
           description: `You haven't been taking ${med.name} consistently for 3 days. Staying on track with medication is important for your health.`,
