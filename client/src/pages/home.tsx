@@ -437,11 +437,40 @@ export default function Home() {
           </CardTitle>
           {todaysSleep ? (
             <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-              <div className="text-lg font-medium text-green-700 dark:text-green-400">
+              <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
                 ✅ Sleep logged: {todaysSleep.hoursSlept}h
               </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                {todaysSleep.bedtimeDescriptor && (
+                  <p>Bedtime: {todaysSleep.bedtimeDescriptor}</p>
+                )}
+                {todaysSleep.wakeupDescriptor && (
+                  <p>Wake-up: {todaysSleep.wakeupDescriptor}</p>
+                )}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  // Reset sleep form to edit mode with current data
+                  const bedtime = new Date(todaysSleep.bedtime);
+                  const wakeTime = new Date(todaysSleep.wakeTime);
+                  setSleepForm({
+                    bedtime: `${bedtime.getHours().toString().padStart(2, '0')}:${bedtime.getMinutes().toString().padStart(2, '0')}`,
+                    wakeTime: `${wakeTime.getHours().toString().padStart(2, '0')}:${wakeTime.getMinutes().toString().padStart(2, '0')}`,
+                    bedtimeDescriptor: todaysSleep.bedtimeDescriptor || '',
+                    wakeupDescriptor: todaysSleep.wakeupDescriptor || ''
+                  });
+                }}
+                data-testid="button-edit-sleep"
+              >
+                Edit Sleep
+              </Button>
             </div>
-          ) : (
+          ) : null}
+          
+          {/* Sleep form - always show if no sleep logged or editing */}
+          {(!todaysSleep || sleepForm.bedtime || sleepForm.wakeTime) && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <Input
@@ -473,14 +502,28 @@ export default function Home() {
                   data-testid="input-wakeup-descriptor"
                 />
               </div>
-              <Button 
-                onClick={() => addSleepMutation.mutate(sleepForm)}
-                disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
-                data-testid="button-log-sleep"
-                className="bg-purple-600 hover:bg-purple-700 text-white w-full"
-              >
-                {addSleepMutation.isPending ? "Logging Sleep..." : "Log Sleep"}
-              </Button>
+              
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={() => addSleepMutation.mutate(sleepForm)}
+                  disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
+                  data-testid="button-log-sleep"
+                  className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                >
+                  {addSleepMutation.isPending ? "Saving..." : todaysSleep ? "Update Sleep" : "Log Sleep"}
+                </Button>
+                {todaysSleep && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSleepForm({ bedtime: '', wakeTime: '', bedtimeDescriptor: '', wakeupDescriptor: '' });
+                    }}
+                    data-testid="button-cancel-sleep-edit"
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardHeader>
@@ -649,86 +692,83 @@ export default function Home() {
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="font-medium mb-3">{med.name} - {med.dosage}</div>
                   
-                  {/* Visual pill representation */}
-                  <div className="flex items-center justify-center space-x-4 mb-4">
-                    {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => (
-                      <div key={pillIndex} className="text-center">
-                        <div className={`w-12 h-6 rounded-full border-2 flex items-center justify-center ${
-                          medicationTaken.some(record => 
-                            record.medicationId === med.id &&
-                            new Date(record.takenAt).toDateString() === new Date().toDateString()
-                          ) ? 'bg-green-200 border-green-400' : 'bg-gray-200 border-gray-400'
-                        }`}>
-                          💊
+                  {/* Visual pill representation with individual tracking */}
+                  <div className="space-y-4 mb-4">
+                    {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => {
+                      const time = med.times?.[pillIndex] || 'N/A';
+                      const hour = parseInt(time.split(':')[0]);
+                      const ampm = hour < 12 ? 'AM' : 'PM';
+                      const displayTime = `${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}:${time.split(':')[1]} ${ampm}`;
+                      const isThisPillTaken = medicationTaken.some(record => 
+                        record.medicationId === med.id &&
+                        record.scheduledTime === time &&
+                        new Date(record.takenAt).toDateString() === new Date().toDateString()
+                      );
+                      
+                      return (
+                        <div key={pillIndex} className={`p-4 rounded-lg border-2 ${isThisPillTaken ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-16 h-8 rounded-full border-2 flex items-center justify-center text-lg ${
+                                isThisPillTaken ? 'bg-green-200 border-green-400' : 'bg-white border-gray-300'
+                              }`}>
+                                💊
+                              </div>
+                              <div>
+                                <div className="font-bold text-lg">{displayTime}</div>
+                                <div className="text-sm text-gray-500">{ampm} Dose</div>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 hover:bg-green-200 dark:hover:bg-green-800 flex flex-col items-center"
+                                onClick={() => {
+                                  markMedicationTakenMutation.mutate({
+                                    medicationId: med.id,
+                                    scheduledTime: time
+                                  });
+                                }}
+                                disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
+                                data-testid={`med-taken-${med.id}-${pillIndex}`}
+                              >
+                                <span className="text-2xl">👍</span>
+                                <span className="text-xs">Taken</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="p-2 hover:bg-red-200 dark:hover:bg-red-800 flex flex-col items-center"
+                                onClick={() => {
+                                  toast({
+                                    title: "Medication skipped",
+                                    description: `${displayTime} dose marked as skipped`,
+                                    variant: "destructive",
+                                  });
+                                }}
+                                disabled={isThisPillTaken}
+                                data-testid={`med-skip-${med.id}-${pillIndex}`}
+                              >
+                                <span className="text-2xl">👎</span>
+                                <span className="text-xs">Skip</span>
+                              </Button>
+                            </div>
+                          </div>
+                          {isThisPillTaken && (
+                            <div className="mt-2 text-green-600 font-medium text-sm">
+                              ✅ TAKEN
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs mt-1">
-                          {med.times?.[pillIndex] || 'N/A'}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   
-                  <div className="text-center">
-                    <div className="font-bold text-lg mb-2">
-                      Schedule: {med.times?.length > 0 ? med.times.join(', ') : 'No times set'}
+                  <div className="text-center mt-4">
+                    <div className="text-sm text-gray-500">
+                      {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
                     </div>
-                    
-                    <div className="flex justify-center space-x-6">
-                      <Button
-                        size="lg"
-                        variant="ghost"
-                        className="p-4 h-auto hover:bg-green-200 dark:hover:bg-green-800 flex flex-col items-center"
-                        onClick={() => {
-                          const currentHour = new Date().getHours();
-                          const nextTime = med.times?.find(time => {
-                            const timeHour = parseInt(time.split(':')[0]);
-                            return timeHour >= currentHour;
-                          }) || med.times?.[0] || '08:00';
-                          
-                          markMedicationTakenMutation.mutate({
-                            medicationId: med.id,
-                            scheduledTime: nextTime
-                          });
-                        }}
-                        disabled={medicationTaken.some(record => 
-                          record.medicationId === med.id &&
-                          new Date(record.takenAt).toDateString() === new Date().toDateString()
-                        ) || markMedicationTakenMutation.isPending}
-                        data-testid={`med-taken-${med.id}`}
-                      >
-                        <span className="text-5xl">👍</span>
-                        <span className="text-sm mt-1">Taken</span>
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="ghost"
-                        className="p-4 h-auto hover:bg-red-200 dark:hover:bg-red-800 flex flex-col items-center"
-                        onClick={() => {
-                          toast({
-                            title: "Medication skipped",
-                            description: "Marked as intentionally skipped for today",
-                            variant: "destructive",
-                          });
-                        }}
-                        disabled={medicationTaken.some(record => 
-                          record.medicationId === med.id &&
-                          new Date(record.takenAt).toDateString() === new Date().toDateString()
-                        )}
-                        data-testid={`med-skip-${med.id}`}
-                      >
-                        <span className="text-5xl">👎</span>
-                        <span className="text-sm mt-1">Skip</span>
-                      </Button>
-                    </div>
-                      
-                    {medicationTaken.some(record => 
-                      record.medicationId === med.id &&
-                      new Date(record.takenAt).toDateString() === new Date().toDateString()
-                    ) && (
-                      <div className="mt-3 text-green-600 dark:text-green-400 font-bold text-lg">
-                        ✅ TAKEN TODAY
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
