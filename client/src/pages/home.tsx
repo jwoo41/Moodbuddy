@@ -526,114 +526,78 @@ export default function Home() {
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="font-medium mb-2">{med.name} - {med.dosage}</div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* AM Dose */}
-                    {med.times.filter(time => {
-                      const hour = parseInt(time.split(':')[0]);
-                      return hour < 12;
-                    }).map((time) => {
-                      const isTaken = isMedicationTakenToday(med.id, time);
+                  {/* Single tracking section with all scheduled times listed */}
+                  <div className={`p-4 rounded-lg border-2 transition-all ${
+                    medicationTaken.some(record => 
+                      record.medicationId === med.id &&
+                      new Date(record.takenAt).toDateString() === new Date().toDateString()
+                    ) ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
+                  }`}>
+                    <div className="text-center">
+                      <div className="font-bold text-lg mb-2">
+                        Today's Schedule: {med.times.join(', ')}
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-3">
+                        {med.frequency === 'daily' ? '1x daily' : med.frequency === 'twice-daily' ? '2x daily' : '3x daily'}
+                      </div>
                       
-                      return (
-                        <div key={time} className={`p-3 rounded-lg border-2 transition-all ${
-                          isTaken ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-                        }`}>
-                          <div className="text-center">
-                            <div className="font-bold text-lg mb-2">AM ({time})</div>
-                            <div className="flex justify-center space-x-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 h-auto hover:bg-green-200 dark:hover:bg-green-800"
-                                onClick={() => !isTaken && markMedicationTakenMutation.mutate({
-                                  medicationId: med.id,
-                                  scheduledTime: time
-                                })}
-                                disabled={isTaken || markMedicationTakenMutation.isPending}
-                                data-testid={`med-taken-${med.id}-${time}`}
-                              >
-                                <span className="text-3xl">👍</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 h-auto hover:bg-red-200 dark:hover:bg-red-800"
-                                onClick={() => {
-                                  toast({
-                                    title: "AM dose skipped",
-                                    description: "Marked as intentionally skipped",
-                                    variant: "destructive",
-                                  });
-                                }}
-                                disabled={isTaken}
-                                data-testid={`med-skip-${med.id}-${time}`}
-                              >
-                                <span className="text-3xl">👎</span>
-                              </Button>
-                            </div>
-                            {isTaken && (
-                              <div className="mt-2 text-green-600 dark:text-green-400 font-bold">
-                                ✅ TAKEN
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    {/* PM Dose */}
-                    {med.times.filter(time => {
-                      const hour = parseInt(time.split(':')[0]);
-                      return hour >= 12;
-                    }).map((time) => {
-                      const isTaken = isMedicationTakenToday(med.id, time);
+                      <div className="flex justify-center space-x-4">
+                        <Button
+                          size="lg"
+                          variant="ghost"
+                          className="p-3 h-auto hover:bg-green-200 dark:hover:bg-green-800"
+                          onClick={() => {
+                            // Mark medication as taken for the current time or next scheduled time
+                            const currentHour = new Date().getHours();
+                            const currentTime = `${currentHour.toString().padStart(2, '0')}:00`;
+                            const nextTime = med.times.find(time => {
+                              const timeHour = parseInt(time.split(':')[0]);
+                              return timeHour >= currentHour;
+                            }) || med.times[0];
+                            
+                            markMedicationTakenMutation.mutate({
+                              medicationId: med.id,
+                              scheduledTime: nextTime
+                            });
+                          }}
+                          disabled={medicationTaken.some(record => 
+                            record.medicationId === med.id &&
+                            new Date(record.takenAt).toDateString() === new Date().toDateString()
+                          ) || markMedicationTakenMutation.isPending}
+                          data-testid={`med-taken-${med.id}`}
+                        >
+                          <span className="text-4xl">👍</span>
+                        </Button>
+                        <Button
+                          size="lg"
+                          variant="ghost"
+                          className="p-3 h-auto hover:bg-red-200 dark:hover:bg-red-800"
+                          onClick={() => {
+                            toast({
+                              title: "Medication skipped",
+                              description: "Marked as intentionally skipped for today",
+                              variant: "destructive",
+                            });
+                          }}
+                          disabled={medicationTaken.some(record => 
+                            record.medicationId === med.id &&
+                            new Date(record.takenAt).toDateString() === new Date().toDateString()
+                          )}
+                          data-testid={`med-skip-${med.id}`}
+                        >
+                          <span className="text-4xl">👎</span>
+                        </Button>
+                      </div>
                       
-                      return (
-                        <div key={time} className={`p-3 rounded-lg border-2 transition-all ${
-                          isTaken ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-600' : 'bg-white border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-                        }`}>
-                          <div className="text-center">
-                            <div className="font-bold text-lg mb-2">PM ({time})</div>
-                            <div className="flex justify-center space-x-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 h-auto hover:bg-green-200 dark:hover:bg-green-800"
-                                onClick={() => !isTaken && markMedicationTakenMutation.mutate({
-                                  medicationId: med.id,
-                                  scheduledTime: time
-                                })}
-                                disabled={isTaken || markMedicationTakenMutation.isPending}
-                                data-testid={`med-taken-${med.id}-${time}`}
-                              >
-                                <span className="text-3xl">👍</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 h-auto hover:bg-red-200 dark:hover:bg-red-800"
-                                onClick={() => {
-                                  toast({
-                                    title: "PM dose skipped",
-                                    description: "Marked as intentionally skipped",
-                                    variant: "destructive",
-                                  });
-                                }}
-                                disabled={isTaken}
-                                data-testid={`med-skip-${med.id}-${time}`}
-                              >
-                                <span className="text-3xl">👎</span>
-                              </Button>
-                            </div>
-                            {isTaken && (
-                              <div className="mt-2 text-green-600 dark:text-green-400 font-bold">
-                                ✅ TAKEN
-                              </div>
-                            )}
-                          </div>
+                      {medicationTaken.some(record => 
+                        record.medicationId === med.id &&
+                        new Date(record.takenAt).toDateString() === new Date().toDateString()
+                      ) && (
+                        <div className="mt-3 text-green-600 dark:text-green-400 font-bold text-lg">
+                          ✅ TAKEN TODAY
                         </div>
-                      );
-                    })}
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
