@@ -77,10 +77,10 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Section */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-mindflow-neutral-900 dark:text-foreground mb-2">
+        <h2 className="text-2xl font-semibold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
           Good morning, Sarah! 🌅
         </h2>
-        <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+        <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
           Take a moment to check in with yourself today.
         </p>
       </div>
@@ -90,44 +90,44 @@ export default function Dashboard() {
         <Button
           variant="outline"
           onClick={() => setIsMoodModalOpen(true)}
-          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-mindflow-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
+          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-moodbuddy-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
           data-testid="button-log-mood"
         >
           <div className="text-2xl mb-2">😊</div>
-          <div className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground group-hover:text-primary">
+          <div className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground group-hover:text-primary">
             Log Mood
           </div>
         </Button>
         
         <Button
           variant="outline"
-          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-mindflow-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
+          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-moodbuddy-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
           data-testid="button-sleep-log"
         >
           <div className="text-2xl mb-2">😴</div>
-          <div className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground group-hover:text-primary">
+          <div className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground group-hover:text-primary">
             Sleep Log
           </div>
         </Button>
         
         <Button
           variant="outline"
-          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-mindflow-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
+          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-moodbuddy-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
           data-testid="button-write-journal"
         >
           <div className="text-2xl mb-2">📝</div>
-          <div className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground group-hover:text-primary">
+          <div className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground group-hover:text-primary">
             Write
           </div>
         </Button>
         
         <Button
           variant="outline"
-          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-mindflow-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
+          className="bg-white dark:bg-card p-4 h-auto rounded-xl shadow-sm border border-moodbuddy-neutral-100 dark:border-border hover:shadow-md transition-all group flex-col"
           data-testid="button-view-meds"
         >
           <div className="text-2xl mb-2">💊</div>
-          <div className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground group-hover:text-primary">
+          <div className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground group-hover:text-primary">
             Meds
           </div>
         </Button>
@@ -140,7 +140,7 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground">
+                <h3 className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
                   Today's Mood
                 </h3>
                 <Button
@@ -159,7 +159,7 @@ export default function Dashboard() {
                   <div className="text-6xl mb-4">
                     {moodEmojis[todaysMood.mood as keyof typeof moodEmojis]}
                   </div>
-                  <p className="text-center text-sm text-mindflow-neutral-500 dark:text-muted-foreground">
+                  <p className="text-center text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground">
                     You're feeling{" "}
                     <span className="font-medium text-primary" data-testid="current-mood-label">
                       {moodLabels[todaysMood.mood as keyof typeof moodLabels]}
@@ -167,15 +167,15 @@ export default function Dashboard() {
                     today
                   </p>
                   {todaysMood.notes && (
-                    <p className="mt-2 text-sm text-mindflow-neutral-600 dark:text-muted-foreground italic">
+                    <p className="mt-2 text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground italic">
                       "{todaysMood.notes}"
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="text-4xl text-mindflow-neutral-300 dark:text-muted-foreground mb-2">😊</div>
-                  <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+                  <div className="text-4xl text-moodbuddy-neutral-300 dark:text-muted-foreground mb-2">😊</div>
+                  <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
                     How are you feeling today?
                   </p>
                   <Button
@@ -194,7 +194,7 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground">
+                <h3 className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
                   Sleep Patterns
                 </h3>
                 <Button
@@ -212,22 +212,22 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground" data-testid="last-night-hours">
+                  <div className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="last-night-hours">
                     {lastNightSleep ? `${lastNightSleep.hoursSlept}h` : "--"}
                   </div>
-                  <div className="text-xs text-mindflow-neutral-500 dark:text-muted-foreground">Last Night</div>
+                  <div className="text-xs text-moodbuddy-neutral-500 dark:text-muted-foreground">Last Night</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground" data-testid="weekly-average">
+                  <div className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="weekly-average">
                     {weeklyAverage ? `${weeklyAverage.toFixed(1)}h` : "--"}
                   </div>
-                  <div className="text-xs text-mindflow-neutral-500 dark:text-muted-foreground">Weekly Avg</div>
+                  <div className="text-xs text-moodbuddy-neutral-500 dark:text-muted-foreground">Weekly Avg</div>
                 </div>
                 <div className="text-center">
                   <div className="text-lg font-semibold text-primary" data-testid="sleep-quality">
                     {lastNightSleep?.quality || "--"}
                   </div>
-                  <div className="text-xs text-mindflow-neutral-500 dark:text-muted-foreground">Quality</div>
+                  <div className="text-xs text-moodbuddy-neutral-500 dark:text-muted-foreground">Quality</div>
                 </div>
               </div>
             </CardContent>
@@ -237,7 +237,7 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground">
+                <h3 className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
                   Recent Journal Entries
                 </h3>
                 <Button
@@ -270,8 +270,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="text-4xl text-mindflow-neutral-300 dark:text-muted-foreground mb-2">📝</div>
-                  <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-4">
+                  <div className="text-4xl text-moodbuddy-neutral-300 dark:text-muted-foreground mb-2">📝</div>
+                  <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-4">
                     No journal entries yet
                   </p>
                   <Button data-testid="button-start-journaling">
@@ -289,7 +289,7 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground">
+                <h3 className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
                   Medication
                 </h3>
                 <Button
@@ -315,7 +315,7 @@ export default function Dashboard() {
                   ))}
                   <Button
                     variant="outline"
-                    className="w-full mt-4 py-2 border-2 border-dashed border-mindflow-neutral-200 dark:border-border text-sm text-mindflow-neutral-500 dark:text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    className="w-full mt-4 py-2 border-2 border-dashed border-moodbuddy-neutral-200 dark:border-border text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                     data-testid="button-add-medication"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -324,8 +324,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="text-center py-6">
-                  <div className="text-3xl text-mindflow-neutral-300 dark:text-muted-foreground mb-2">💊</div>
-                  <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-4">
+                  <div className="text-3xl text-moodbuddy-neutral-300 dark:text-muted-foreground mb-2">💊</div>
+                  <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-4">
                     No medications added
                   </p>
                   <Button data-testid="button-add-first-medication">
@@ -339,7 +339,7 @@ export default function Dashboard() {
           {/* Weekly Mood Trend */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-mindflow-neutral-900 dark:text-foreground mb-4">
+              <h3 className="text-lg font-semibold text-moodbuddy-neutral-900 dark:text-foreground mb-4">
                 This Week's Mood
               </h3>
               
@@ -354,7 +354,7 @@ export default function Dashboard() {
                     <span className={`text-sm ${
                       day.isToday 
                         ? "font-medium text-primary" 
-                        : "text-mindflow-neutral-500 dark:text-muted-foreground"
+                        : "text-moodbuddy-neutral-500 dark:text-muted-foreground"
                     }`}>
                       {day.isToday ? "Today" : day.day}
                     </span>
@@ -370,10 +370,10 @@ export default function Dashboard() {
           {/* Motivational Message */}
           <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 text-center">
             <div className="text-2xl mb-3">🌟</div>
-            <h4 className="font-semibold text-mindflow-neutral-900 dark:text-foreground mb-2">
+            <h4 className="font-semibold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
               You're doing great!
             </h4>
-            <p className="text-sm text-mindflow-neutral-600 dark:text-muted-foreground">
+            <p className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
               {moodEntries.length > 0 
                 ? `You've logged your mood ${moodEntries.length} time${moodEntries.length === 1 ? '' : 's'}. Keep up the good work!`
                 : "Start tracking your mental health journey today."

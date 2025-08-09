@@ -14,7 +14,7 @@ export default function Header() {
   const [location] = useLocation();
 
   return (
-    <header className="bg-white dark:bg-card shadow-sm border-b border-mindflow-neutral-100 dark:border-border">
+    <header className="bg-white dark:bg-card shadow-sm border-b border-moodbuddy-neutral-100 dark:border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
@@ -36,7 +36,7 @@ export default function Header() {
                   className={`transition-colors pb-1 ${
                     isActive
                       ? "text-primary font-medium border-b-2 border-primary"
-                      : "text-mindflow-neutral-500 dark:text-muted-foreground hover:text-primary"
+                      : "text-moodbuddy-neutral-500 dark:text-muted-foreground hover:text-primary"
                   }`}
                   data-testid={`nav-link-${item.name.toLowerCase()}`}
                 >
@@ -50,7 +50,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-mindflow-neutral-500 dark:text-muted-foreground hover:text-primary"
+              className="text-moodbuddy-neutral-500 dark:text-muted-foreground hover:text-primary"
               data-testid="button-notifications"
             >
               <Bell className="w-5 h-5" />

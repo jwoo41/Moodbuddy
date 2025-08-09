@@ -30,7 +30,7 @@ function Router() {
 
   // Show authenticated app with header and navigation
   return (
-    <div className="min-h-screen bg-mindflow-neutral-50 dark:bg-background">
+    <div className="min-h-screen bg-moodbuddy-neutral-50 dark:bg-background">
       <Header />
       <main className="pb-20 md:pb-8">
         <Switch>

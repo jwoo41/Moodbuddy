@@ -14,7 +14,7 @@ export default function MobileNav() {
   const [location] = useLocation();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-card border-t border-mindflow-neutral-100 dark:border-border px-4 py-2 z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-card border-t border-moodbuddy-neutral-100 dark:border-border px-4 py-2 z-50">
       <div className="flex justify-around">
         {navigation.map((item) => {
           const isActive = location === item.href;
@@ -27,7 +27,7 @@ export default function MobileNav() {
               className={`flex flex-col items-center py-2 transition-colors ${
                 isActive
                   ? "text-primary"
-                  : "text-mindflow-neutral-500 dark:text-muted-foreground"
+                  : "text-moodbuddy-neutral-500 dark:text-muted-foreground"
               }`}
               data-testid={`mobile-nav-${item.name.toLowerCase()}`}
             >

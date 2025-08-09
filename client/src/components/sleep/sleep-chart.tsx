@@ -84,13 +84,13 @@ export default function SleepChart({ sleepEntries }: SleepChartProps) {
 
   if (!sleepEntries.length) {
     return (
-      <div className="h-48 bg-mindflow-neutral-50 dark:bg-muted rounded-lg flex items-center justify-center">
+      <div className="h-48 bg-moodbuddy-neutral-50 dark:bg-muted rounded-lg flex items-center justify-center">
         <div className="text-center">
-          <div className="text-3xl text-mindflow-neutral-300 dark:text-muted-foreground mb-2">📊</div>
-          <p className="text-sm text-mindflow-neutral-500 dark:text-muted-foreground">
+          <div className="text-3xl text-moodbuddy-neutral-300 dark:text-muted-foreground mb-2">📊</div>
+          <p className="text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground">
             No sleep data yet
           </p>
-          <p className="text-xs text-mindflow-neutral-400 dark:text-muted-foreground">
+          <p className="text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground">
             Add your first sleep entry to see patterns
           </p>
         </div>

@@ -70,7 +70,7 @@ export default function MoodModal({ open, onOpenChange }: MoodModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-mindflow-neutral-900 dark:text-foreground">
+          <DialogTitle className="text-xl font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
             How are you feeling?
           </DialogTitle>
         </DialogHeader>
@@ -83,12 +83,12 @@ export default function MoodModal({ open, onOpenChange }: MoodModalProps) {
               className={`flex flex-col items-center p-3 rounded-lg transition-colors border-2 ${
                 selectedMood === mood.value
                   ? "bg-primary/10 border-primary"
-                  : "hover:bg-mindflow-neutral-50 dark:hover:bg-muted border-transparent"
+                  : "hover:bg-moodbuddy-neutral-50 dark:hover:bg-muted border-transparent"
               }`}
               data-testid={`mood-option-${mood.value}`}
             >
               <span className="text-3xl mb-2">{mood.emoji}</span>
-              <span className="text-xs text-mindflow-neutral-700 dark:text-muted-foreground">
+              <span className="text-xs text-moodbuddy-neutral-700 dark:text-muted-foreground">
                 {mood.label}
               </span>
             </button>
@@ -96,7 +96,7 @@ export default function MoodModal({ open, onOpenChange }: MoodModalProps) {
         </div>
 
         <div className="mb-6">
-          <Label htmlFor="mood-notes" className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground mb-2 block">
+          <Label htmlFor="mood-notes" className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground mb-2 block">
             Notes (optional)
           </Label>
           <Textarea

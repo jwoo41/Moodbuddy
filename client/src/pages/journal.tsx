@@ -282,10 +282,10 @@ export default function Journal() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-mindflow-neutral-900 dark:text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
             Journal
           </h1>
-          <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+          <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
             Reflect on your thoughts and experiences.
           </p>
         </div>
@@ -421,13 +421,13 @@ export default function Journal() {
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground flex items-center">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground flex items-center">
               <BookOpen className="w-4 h-4 mr-2" />
               Total Entries
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="total-journal-entries">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="total-journal-entries">
               {journalEntries.length}
             </div>
           </CardContent>
@@ -435,12 +435,12 @@ export default function Journal() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               Total Words
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="total-journal-words">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="total-journal-words">
               {getTotalWords().toLocaleString()}
             </div>
           </CardContent>
@@ -448,12 +448,12 @@ export default function Journal() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               This Week
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="week-journal-entries">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="week-journal-entries">
               {getThisWeekEntries()}
             </div>
           </CardContent>
@@ -465,7 +465,7 @@ export default function Journal() {
           <div className="flex items-center justify-between">
             <CardTitle>All Entries</CardTitle>
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-mindflow-neutral-400 dark:text-muted-foreground" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-moodbuddy-neutral-400 dark:text-muted-foreground" />
               <Input
                 placeholder="Search entries..."
                 value={searchTerm}
@@ -482,12 +482,12 @@ export default function Journal() {
               {filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="border-l-4 border-primary/20 pl-4 py-4 bg-mindflow-neutral-50/50 dark:bg-muted/50 rounded-r-lg"
+                  className="border-l-4 border-primary/20 pl-4 py-4 bg-moodbuddy-neutral-50/50 dark:bg-muted/50 rounded-r-lg"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-mindflow-neutral-700 dark:text-foreground" data-testid={`journal-date-${entry.id}`}>
+                        <span className="text-sm font-medium text-moodbuddy-neutral-700 dark:text-foreground" data-testid={`journal-date-${entry.id}`}>
                           {formatDate(entry.updatedAt)}
                         </span>
                         <div className="flex space-x-1">
@@ -495,7 +495,7 @@ export default function Journal() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleEdit(entry)}
-                            className="text-xs text-mindflow-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
+                            className="text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-primary p-1 h-auto"
                             data-testid={`button-edit-journal-${entry.id}`}
                           >
                             <Edit className="w-3 h-3" />
@@ -505,7 +505,7 @@ export default function Journal() {
                             variant="ghost"
                             onClick={() => deleteJournalMutation.mutate(entry.id)}
                             disabled={deleteJournalMutation.isPending}
-                            className="text-xs text-mindflow-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
+                            className="text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground hover:text-destructive p-1 h-auto"
                             data-testid={`button-delete-journal-${entry.id}`}
                           >
                             <Trash2 className="w-3 h-3" />
@@ -514,16 +514,16 @@ export default function Journal() {
                       </div>
                       
                       {entry.title && (
-                        <h4 className="font-medium text-mindflow-neutral-800 dark:text-foreground mb-2" data-testid={`journal-title-${entry.id}`}>
+                        <h4 className="font-medium text-moodbuddy-neutral-800 dark:text-foreground mb-2" data-testid={`journal-title-${entry.id}`}>
                           {entry.title}
                         </h4>
                       )}
                       
-                      <p className="text-sm text-mindflow-neutral-600 dark:text-muted-foreground whitespace-pre-wrap" data-testid={`journal-content-${entry.id}`}>
+                      <p className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground whitespace-pre-wrap" data-testid={`journal-content-${entry.id}`}>
                         {getPreview(entry.content)}
                       </p>
                       
-                      <div className="mt-2 text-xs text-mindflow-neutral-400 dark:text-muted-foreground">
+                      <div className="mt-2 text-xs text-moodbuddy-neutral-400 dark:text-muted-foreground">
                         {entry.content.split(/\s+/).filter(word => word.length > 0).length} words
                       </div>
                     </div>
@@ -533,11 +533,11 @@ export default function Journal() {
             </div>
           ) : journalEntries.length === 0 ? (
             <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-medium text-mindflow-neutral-900 dark:text-foreground mb-2">
+              <BookOpen className="w-12 h-12 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-medium text-moodbuddy-neutral-900 dark:text-foreground mb-2">
                 Start Your Journey
               </h3>
-              <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-6">
+              <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-6">
                 Begin documenting your thoughts, feelings, and experiences.
               </p>
               <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-start-journaling">
@@ -546,8 +546,8 @@ export default function Journal() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Search className="w-8 h-8 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-2" />
-              <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+              <Search className="w-8 h-8 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-2" />
+              <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
                 No entries found matching "{searchTerm}"
               </p>
             </div>

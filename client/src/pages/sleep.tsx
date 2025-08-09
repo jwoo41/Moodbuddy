@@ -124,10 +124,10 @@ export default function Sleep() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-mindflow-neutral-900 dark:text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
             Sleep Tracking
           </h1>
-          <p className="text-mindflow-neutral-500 dark:text-muted-foreground">
+          <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">
             Monitor your sleep patterns and improve your rest quality.
           </p>
         </div>
@@ -246,12 +246,12 @@ export default function Sleep() {
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               Average Sleep
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="average-sleep-hours">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="average-sleep-hours">
               {getAverageHours()}h
             </div>
           </CardContent>
@@ -259,12 +259,12 @@ export default function Sleep() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               Total Entries
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="total-sleep-entries">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="total-sleep-entries">
               {sleepEntries.length}
             </div>
           </CardContent>
@@ -272,12 +272,12 @@ export default function Sleep() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-mindflow-neutral-500 dark:text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-moodbuddy-neutral-500 dark:text-muted-foreground">
               Last Night
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-mindflow-neutral-900 dark:text-foreground" data-testid="last-night-hours">
+            <div className="text-2xl font-bold text-moodbuddy-neutral-900 dark:text-foreground" data-testid="last-night-hours">
               {sleepEntries[0]?.hoursSlept || "--"}h
             </div>
           </CardContent>
@@ -304,21 +304,21 @@ export default function Sleep() {
                 {sleepEntries.slice(0, 5).map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-3 bg-mindflow-neutral-50 dark:bg-muted rounded-lg"
+                    className="flex items-center justify-between p-3 bg-moodbuddy-neutral-50 dark:bg-muted rounded-lg"
                   >
                     <div>
-                      <div className="font-medium text-mindflow-neutral-900 dark:text-foreground" data-testid={`sleep-entry-date-${entry.id}`}>
+                      <div className="font-medium text-moodbuddy-neutral-900 dark:text-foreground" data-testid={`sleep-entry-date-${entry.id}`}>
                         {new Date(entry.createdAt).toLocaleDateString()}
                       </div>
-                      <div className="text-sm text-mindflow-neutral-500 dark:text-muted-foreground" data-testid={`sleep-entry-quality-${entry.id}`}>
+                      <div className="text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground" data-testid={`sleep-entry-quality-${entry.id}`}>
                         Quality: {entry.quality}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-mindflow-neutral-900 dark:text-foreground" data-testid={`sleep-entry-hours-${entry.id}`}>
+                      <div className="font-semibold text-moodbuddy-neutral-900 dark:text-foreground" data-testid={`sleep-entry-hours-${entry.id}`}>
                         {entry.hoursSlept}h
                       </div>
-                      <div className="text-sm text-mindflow-neutral-500 dark:text-muted-foreground">
+                      <div className="text-sm text-moodbuddy-neutral-500 dark:text-muted-foreground">
                         {new Date(entry.bedtime).toLocaleTimeString("en-US", {
                           hour: "numeric",
                           minute: "2-digit",
@@ -335,8 +335,8 @@ export default function Sleep() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Moon className="w-12 h-12 text-mindflow-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
-                <p className="text-mindflow-neutral-500 dark:text-muted-foreground mb-4">
+                <Moon className="w-12 h-12 text-moodbuddy-neutral-300 dark:text-muted-foreground mx-auto mb-4" />
+                <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground mb-4">
                   No sleep entries yet
                 </p>
                 <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-add-first-sleep">
