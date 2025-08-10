@@ -1443,7 +1443,7 @@ export default function Home() {
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-center">
           {notificationsEnabled && medications.length > 0 && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
               <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
@@ -1459,7 +1459,7 @@ export default function Home() {
           )}
 
           {medications.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               {medications.map((med) => (
                 <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
