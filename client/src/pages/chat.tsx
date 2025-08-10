@@ -58,10 +58,12 @@ export default function Chat() {
 
       <SmartChat />
       
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-muted-foreground space-y-2">
         <p>
-          For the best chat experience, add your OpenAI API key in the Secrets tab. 
-          Without it, you'll get helpful but basic responses.
+          💡 <strong>Smart Chat Enabled!</strong> MoodBuddy is powered by advanced AI for meaningful conversations.
+        </p>
+        <p className="text-xs">
+          Share your thoughts, feelings, or ask for advice - MoodBuddy provides personalized support and positive affirmations.
         </p>
       </div>
     </div>
