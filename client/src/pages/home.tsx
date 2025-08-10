@@ -22,7 +22,6 @@ import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
 import AdaptiveSoundscape from "@/components/adaptive-soundscape";
 import InspirationalQuotes from "@/components/inspirational-quotes";
-import BackgroundMusic from "@/components/background-music";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -1813,48 +1812,7 @@ export default function Home() {
         <MentalHealthTips />
       </div>
 
-      {/* MoodBuddy Chat Section */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <div className="w-6 h-6 mr-3 flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 100 120" className="rounded">
-                <ellipse cx="50" cy="85" rx="18" ry="15" fill="#FF8A65" />
-                <circle cx="50" cy="50" r="25" fill="#FF8A65" />
-                <circle cx="42" cy="42" r="2.5" fill="#1976D2" />
-                <circle cx="58" cy="42" r="2.5" fill="#1976D2" />
-                <path d="M 40 58 Q 50 65 60 58" stroke="#1976D2" strokeWidth="2" fill="none" strokeLinecap="round" />
-              </svg>
-            </div>
-            Chat with MoodBuddy
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center space-y-4">
-            <p className="text-moodbuddy-neutral-600 dark:text-muted-foreground">
-              Start a conversation about your feelings, get positive affirmations, or just chat about your day. 
-              MoodBuddy is here to listen and support you.
-            </p>
-            <Link href="/chat">
-              <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-                data-testid="button-start-chat"
-              >
-                <div className="w-4 h-4 mr-2 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 100 120" className="rounded">
-                    <ellipse cx="50" cy="85" rx="18" ry="15" fill="currentColor" />
-                    <circle cx="50" cy="50" r="25" fill="currentColor" />
-                    <circle cx="42" cy="42" r="2.5" fill="white" />
-                    <circle cx="58" cy="42" r="2.5" fill="white" />
-                    <path d="M 40 58 Q 50 65 60 58" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
-                  </svg>
-                </div>
-                Start Conversation
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Adaptive Soundscape */}
       <div className="mb-8">
@@ -1903,8 +1861,7 @@ export default function Home() {
 
 
 
-      {/* Background Music */}
-      <BackgroundMusic autoPlay={true} />
+
 
       {/* Bottom spacing for mobile nav */}
       <div className="h-20 md:h-0"></div>

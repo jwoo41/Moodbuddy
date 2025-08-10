@@ -12,7 +12,7 @@ import Exercise from "./pages/exercise";
 import Medication from "./pages/medication";
 import Mood from "./pages/mood";
 import Journal from "./pages/journal";
-import Chat from "./pages/chat";
+
 import GamificationPage from "./pages/gamification";
 import Soundscape from "./pages/soundscape";
 import Header from "@/components/layout/header";
@@ -43,7 +43,7 @@ function Router() {
           <Route path="/medication" component={Medication} />
           <Route path="/mood" component={Mood} />
           <Route path="/journal" component={Journal} />
-          <Route path="/chat" component={Chat} />
+
           <Route path="/soundscape" component={Soundscape} />
           <Route path="/progress" component={GamificationPage} />
           <Route component={NotFound} />
