@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell, Activity, Weight } from "lucide-react";
 import { Link } from "wouter";
@@ -1127,6 +1127,9 @@ export default function Home() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add Medication</DialogTitle>
+            <DialogDescription>
+              Add a new medication to track your medication adherence.
+            </DialogDescription>
           </DialogHeader>
           
           <Form {...medForm}>
