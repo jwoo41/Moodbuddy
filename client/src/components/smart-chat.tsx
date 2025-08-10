@@ -28,16 +28,14 @@ export default function SmartChat() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load chat history from database
+  // Load chat history from database (always enabled for memory functionality)
   const { data: chatHistory, isLoading: historyLoading } = useQuery({
-    queryKey: ['/api/chat/history'],
-    enabled: hasOpenAI
+    queryKey: ['/api/chat/history']
   });
 
-  // Load user context for personalization
+  // Load user context for personalization (always enabled for memory functionality)
   const { data: userContext } = useQuery({
-    queryKey: ['/api/chat/context'],
-    enabled: hasOpenAI
+    queryKey: ['/api/chat/context']
   });
 
   // Initialize messages state
@@ -65,7 +63,7 @@ export default function SmartChat() {
 
   // Load chat history when data becomes available
   useEffect(() => {
-    if (chatHistory && (chatHistory as any).messages && (chatHistory as any).messages.length > 0 && hasOpenAI) {
+    if (chatHistory && (chatHistory as any).messages && (chatHistory as any).messages.length > 0) {
       const historyMessages = (chatHistory as any).messages.map((msg: any) => ({
         id: msg.id,
         role: msg.role,
@@ -76,7 +74,7 @@ export default function SmartChat() {
       }));
       setMessages(historyMessages);
     }
-  }, [chatHistory, hasOpenAI]);
+  }, [chatHistory]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -142,12 +140,10 @@ export default function SmartChat() {
       
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Refresh chat history to keep memory in sync
-      if (hasOpenAI) {
-        queryClient.invalidateQueries({
-          queryKey: ['/api/chat/history']
-        });
-      }
+      // Refresh chat history to keep memory in sync (always refresh for memory)
+      queryClient.invalidateQueries({
+        queryKey: ['/api/chat/history']
+      });
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -262,14 +258,24 @@ export default function SmartChat() {
         </p>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
-        {/* Context Panel */}
-        {showHistory && hasOpenAI && (
+        {/* Memory & Context Panel */}
+        {showHistory && (
           <div className="border-b bg-purple-50 dark:bg-purple-950 p-3">
             <div className="text-xs text-purple-700 dark:text-purple-300 space-y-2">
               <div className="font-semibold flex items-center gap-2">
                 <Brain className="w-3 h-3" />
-                Context & Memory
+                Memory & Context
               </div>
+              
+              {/* Chat History */}
+              <div>
+                <span className="font-medium">Chat Messages:</span> 
+                <span className="ml-1">
+                  {(chatHistory as any)?.messages?.length || 0} stored messages
+                </span>
+              </div>
+              
+              {/* User Context */}
               {(userContext as any)?.currentContext && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -288,8 +294,9 @@ export default function SmartChat() {
                   )}
                 </div>
               )}
-              <div className="text-xs text-purple-600 dark:text-purple-400">
-                💡 MoodBuddy remembers your conversations, mood patterns, and activities to provide personalized support
+              
+              <div className="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                🧠 MoodBuddy remembers your conversations, mood patterns, and activities to provide personalized support
               </div>
             </div>
           </div>
@@ -314,7 +321,7 @@ export default function SmartChat() {
                     <p className="text-xs opacity-70">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
-                    {hasOpenAI && message.topics && message.topics.length > 0 && (
+                    {message.topics && message.topics.length > 0 && (
                       <div className="flex gap-1">
                         {message.topics.slice(0, 2).map((topic, idx) => (
                           <span key={idx} className="text-xs bg-purple-200 dark:bg-purple-800 px-1 rounded text-purple-700 dark:text-purple-300">
