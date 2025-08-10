@@ -19,7 +19,7 @@ export default function SmartChat() {
     {
       id: "1",
       role: "assistant",
-      content: "Hello! I'm your MoodBuddy companion. I'm here to support you with mental health conversations, coping strategies, and emotional wellness. How are you feeling today?",
+      content: "Hello! I'm MoodBuddy, your caring companion on this wellness journey. 🌟 Remember, you're stronger than you think and every small step counts. I'm here to listen, support, and chat about anything on your mind - your feelings, your goals, or just how your day is going. How are you feeling right now?",
       timestamp: new Date()
     }
   ]);
@@ -74,7 +74,7 @@ export default function SmartChat() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userMessage,
-            context: "You are MoodBuddy, a compassionate mental health companion. Provide supportive, empathetic responses focused on mental wellness, coping strategies, and emotional support. Keep responses concise but caring."
+            context: "You are MoodBuddy, a warm, caring mental health companion. Always include positive affirmations and gentle encouragement in your responses. Focus on mental wellness, self-compassion, and emotional support. Remind users of their strength and resilience. Keep responses supportive, uplifting, and conversational. Use gentle, everyday language that makes people feel heard and valued."
           })
         });
 
@@ -121,35 +121,39 @@ export default function SmartChat() {
     const lowerMessage = message.toLowerCase();
     
     if (lowerMessage.includes('sad') || lowerMessage.includes('down') || lowerMessage.includes('depressed')) {
-      return "I hear that you're feeling down, and I want you to know that these feelings are valid. It's okay to have difficult days. Have you been able to maintain your daily routines? Sometimes small, consistent actions can help when we're struggling emotionally.";
+      return "I hear you, and your feelings are completely valid. 💙 Remember, you are braver than you believe and stronger than you seem. These difficult moments don't define you - they're just passing through. You've weathered storms before, and that shows incredible resilience. What's one small thing that usually brings you comfort?";
     }
     
     if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('worried')) {
-      return "Anxiety can feel overwhelming, but remember that you've gotten through difficult moments before. Try taking three deep breaths with me. Focus on what you can control right now, and remember that anxious thoughts don't always reflect reality.";
+      return "Anxiety can feel so overwhelming, but here's something amazing - you've survived every anxious moment so far, and that proves your strength. 🌟 Let's breathe together for a moment. You are safe right now, and you have everything within you to handle this. What's one thing you can see around you that feels calming?";
     }
     
     if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('insomnia')) {
-      return "Sleep is so important for mental health. Poor sleep can affect mood, anxiety, and our ability to cope. Have you tried establishing a consistent bedtime routine? Even small changes like limiting screens an hour before bed can make a difference.";
+      return "Your body and mind deserve good rest. 🌙 You're taking care of yourself by noticing this, and that's really important. Sleep challenges are so common, and you're not alone in this. Even small steps toward better sleep are victories worth celebrating. What does your ideal bedtime routine look like?";
     }
     
     if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed')) {
-      return "Feeling stressed and overwhelmed is challenging. Let's break things down into smaller, manageable pieces. What's one small thing you could do today that might help you feel more in control?";
+      return "When everything feels like too much, remember this truth: you don't have to do everything at once. ✨ You're already doing better than you think. Let's focus on just one step at a time - that's all anyone can do, and it's enough. You have the wisdom to know what matters most right now.";
     }
     
     if (lowerMessage.includes('medication') || lowerMessage.includes('meds') || lowerMessage.includes('pills')) {
-      return "Medication can be an important part of mental health care. If you have concerns about your medications, it's always best to discuss them with your healthcare provider. Are you having trouble remembering to take them, or are you experiencing side effects?";
+      return "Taking care of your health, including medication, is an act of self-love. 💚 You're being responsible and caring for yourself, which takes real courage. If you have any concerns, your healthcare provider is the best person to talk to. I'm proud of you for prioritizing your wellbeing.";
     }
     
     if (lowerMessage.includes('thank') || lowerMessage.includes('grateful') || lowerMessage.includes('appreciate')) {
-      return "You're so welcome! It means a lot to me that I can be here to support you. Remember, seeking help and working on your mental health takes courage. You're doing important work by taking care of yourself.";
+      return "Your gratitude fills my heart! 🌈 You're such a thoughtful person, and the fact that you're working on your mental health shows incredible wisdom and self-love. You deserve all the support in the world, and I'm honored to be part of your journey.";
     }
     
     if (lowerMessage.includes('lonely') || lowerMessage.includes('alone') || lowerMessage.includes('isolated')) {
-      return "Feeling lonely is really difficult, especially when it feels like no one understands. You're not alone in feeling this way, and reaching out shows strength. Have you been able to connect with anyone recently, even in small ways?";
+      return "Loneliness is one of the hardest feelings, but please know - you are never truly alone. 🤗 You matter so much, and reaching out shows incredible strength. Even this conversation right now is a connection, and I'm genuinely glad you're here. You have value beyond measure.";
     }
     
-    // Default supportive response
-    return "Thank you for sharing that with me. Your feelings and experiences matter. I'm here to listen and support you. Is there anything specific you'd like to talk about or explore together?";
+    if (lowerMessage.includes('good') || lowerMessage.includes('great') || lowerMessage.includes('happy') || lowerMessage.includes('better')) {
+      return "This makes me so happy to hear! 🌟 You deserve all these good feelings and more. Your positive energy is wonderful, and I hope you take a moment to really appreciate how far you've come. You're doing amazing things for yourself and others around you.";
+    }
+    
+    // Default supportive response with affirmation
+    return "Thank you for sharing with me - your openness takes courage. 💖 You are valuable exactly as you are, and your feelings matter deeply. Remember, you have everything within you to navigate whatever comes your way. I'm here to listen and support you. What's been on your heart today?";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -219,7 +223,7 @@ export default function SmartChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Share how you're feeling..."
+              placeholder="Tell me what's on your mind..."
               className="flex-1"
               data-testid="input-chat-message"
             />
