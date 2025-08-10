@@ -74,11 +74,24 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-2xl">
-            <img 
-              src="/attached_assets/E8DD0ACA-4AA3-4CE3-9E12-F53F81926CC4_1754843158324.png" 
-              alt="MoodBuddy Avatar" 
-              className="w-8 h-8 rounded-full object-cover mr-2"
-            />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 mr-3">
+              <svg width="40" height="40" viewBox="0 0 100 120" className="rounded-lg">
+                {/* Body */}
+                <ellipse cx="50" cy="95" rx="20" ry="18" fill="#FF8A65" />
+                {/* Head with light blue background circle */}
+                <circle cx="50" cy="50" r="28" fill="#B3E5FC" />
+                {/* Face */}
+                <circle cx="50" cy="50" r="23" fill="#FF8A65" />
+                {/* Eyes */}
+                <circle cx="42" cy="44" r="3" fill="#1976D2" />
+                <circle cx="58" cy="44" r="3" fill="#1976D2" />
+                {/* Smile */}
+                <path d="M 38 58 Q 50 68 62 58" stroke="#1976D2" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                {/* Arms */}
+                <ellipse cx="25" cy="80" rx="8" ry="12" fill="#FF8A65" transform="rotate(-20 25 80)" />
+                <ellipse cx="75" cy="80" rx="8" ry="12" fill="#FF8A65" transform="rotate(20 75 80)" />
+              </svg>
+            </div>
             Welcome to MoodBuddy!
           </DialogTitle>
           <p className="text-muted-foreground">
