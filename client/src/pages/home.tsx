@@ -20,7 +20,7 @@ import { MultiStepOnboarding } from "@/components/onboarding/multi-step-onboardi
 import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
-import AdaptiveSoundscape from "@/components/adaptive-soundscape";
+
 import InspirationalQuotes from "@/components/inspirational-quotes";
 
 const moodEmojis = {
@@ -1814,10 +1814,7 @@ export default function Home() {
 
 
 
-      {/* Adaptive Soundscape */}
-      <div className="mb-8">
-        <AdaptiveSoundscape />
-      </div>
+
 
 
 
