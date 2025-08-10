@@ -538,19 +538,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        model: "gpt-4o", // Using GPT-4o which is the most advanced model available for mental health conversations
         messages: [
           {
             role: "system",
-            content: context || "You are MoodBuddy, a compassionate mental health companion. Provide supportive, empathetic responses focused on mental wellness, coping strategies, and emotional support. Keep responses concise but caring."
+            content: context || "You are MoodBuddy, a compassionate mental health companion. Provide supportive, empathetic responses focused on mental wellness, coping strategies, and emotional support. Always include gentle encouragement and positive affirmations. Keep responses conversational, caring, and around 2-3 sentences."
           },
           {
             role: "user",
             content: message
           }
         ],
-        max_tokens: 300,
-        temperature: 0.7,
+        max_tokens: 400,
+        temperature: 0.8,
       });
 
       const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response right now. Please try again.";
