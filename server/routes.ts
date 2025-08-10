@@ -525,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { message, context } = req.body;
-      const userId = req.session?.passport?.user?.id || 'demo-user';
+      const userId = (req.session as any)?.passport?.user?.id || 'demo-user';
       
       if (!message) {
         return res.status(400).json({ error: 'Message is required' });
@@ -625,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get chat history
   app.get('/api/chat/history', async (req, res) => {
     try {
-      const userId = req.session?.passport?.user?.id || 'demo-user';
+      const userId = (req.session as any)?.passport?.user?.id || 'demo-user';
       const { chatMemoryService } = await import('./chat-memory');
       
       const messages = await chatMemoryService.getRecentMessages(userId, 20);
@@ -639,7 +639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user context for personalization insights
   app.get('/api/chat/context', async (req, res) => {
     try {
-      const userId = req.session?.passport?.user?.id || 'demo-user';
+      const userId = (req.session as any)?.passport?.user?.id || 'demo-user';
       const { chatMemoryService } = await import('./chat-memory');
       
       const userCtx = await chatMemoryService.getUserContext(userId);
@@ -658,7 +658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user preferences
   app.post('/api/chat/preferences', async (req, res) => {
     try {
-      const userId = req.session?.passport?.user?.id || 'demo-user';
+      const userId = (req.session as any)?.passport?.user?.id || 'demo-user';
       const { preferences, mentalHealthProfile, personalDetails } = req.body;
       const { chatMemoryService } = await import('./chat-memory');
       
