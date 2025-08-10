@@ -20,6 +20,7 @@ import { MultiStepOnboarding } from "@/components/onboarding/multi-step-onboardi
 import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
+import AdaptiveSoundscape from "@/components/adaptive-soundscape";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -1847,6 +1848,11 @@ export default function Home() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Adaptive Soundscape */}
+      <div className="mb-8">
+        <AdaptiveSoundscape />
+      </div>
 
 
 
