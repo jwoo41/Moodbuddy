@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Heart, Moon, Pill, PenTool, MessageCircle } from "lucide-react";
+import { Brain, Heart, Moon, Pill, PenTool } from "lucide-react";
 
 export default function Landing() {
   const features = [
@@ -24,11 +24,7 @@ export default function Landing() {
       title: "Journal Entries",
       description: "Express your thoughts and track your mental health journey"
     },
-    {
-      icon: <MessageCircle className="w-6 h-6" />,
-      title: "AI Companion",
-      description: "Get support through intelligent conversations"
-    },
+
     {
       icon: <Brain className="w-6 h-6" />,
       title: "Insights & Analytics",

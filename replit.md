@@ -52,6 +52,10 @@ The application follows a dashboard-centric approach where users can view aggreg
   - Automatic soundscape switching when mood changes while playing
 - **Simplified Interface**: AI chat functionality, background music, and adaptive soundscape features have been removed per user request to focus on core mental health tracking features
 - **Updated Onboarding Flow**: Replaced "Ask questions & discuss mental health topics" feature with "Track your exercise & build healthy habits" using flex emoji 💪 in the onboarding features showcase
+- **Removed AI Companion**: Completely removed AI chat functionality from the application per user request, including:
+  - Removed "AI Companion" feature from landing page showcase
+  - Deleted chat.tsx page and smart-chat.tsx component
+  - Cleaned up unused MessageCircle icon imports
 
 ## User Preferences
 
