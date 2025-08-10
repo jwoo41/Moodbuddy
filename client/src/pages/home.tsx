@@ -192,9 +192,18 @@ export default function Home() {
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      displayName: user?.displayName || user?.firstName || '',
+      displayName: '',
     },
   });
+
+  // Update form when user data loads
+  useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        displayName: user.displayName || user.firstName || '',
+      });
+    }
+  }, [user, profileForm]);
 
   const medForm = useForm<MedicationFormData>({
     resolver: zodResolver(medicationFormSchema),

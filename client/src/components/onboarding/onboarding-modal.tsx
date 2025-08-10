@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,7 +27,7 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      displayName: userName || "",
+      displayName: "",
       email: "",
       phoneNumber: "",
       emergencyContactName: "",
@@ -37,6 +37,13 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
       alertsEnabled: true,
     },
   });
+
+  // Update form when userName prop changes
+  useEffect(() => {
+    if (userName) {
+      form.setValue("displayName", userName);
+    }
+  }, [userName, form]);
 
   const onboardingMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
