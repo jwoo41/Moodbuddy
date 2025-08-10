@@ -195,7 +195,7 @@ export default function Medication() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Frequency</FormLabel>
-                      <Select onValueChange={handleFrequencyChange} defaultValue={field.value}>
+                      <Select onValueChange={handleFrequencyChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-medication-frequency">
                             <SelectValue placeholder="How often?" />

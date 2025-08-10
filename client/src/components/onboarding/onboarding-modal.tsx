@@ -94,9 +94,9 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
             </div>
             Welcome to MoodBuddy!
           </DialogTitle>
-          <p className="text-muted-foreground">
+          <DialogDescription>
             Let's set up your profile to personalize your mental health journey
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

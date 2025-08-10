@@ -191,8 +191,10 @@ export default function Journal() {
 
   const handleEdit = (entry: JournalEntry) => {
     setEditingEntry(entry);
-    form.setValue("title", entry.title || "");
-    form.setValue("content", entry.content);
+    form.reset({
+      title: entry.title || "",
+      content: entry.content || "",
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -567,6 +569,9 @@ export default function Journal() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Journal Entry</DialogTitle>
+            <DialogDescription>
+              Update your journal entry with new thoughts or revisions.
+            </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>

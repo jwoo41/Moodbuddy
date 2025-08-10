@@ -114,8 +114,10 @@ export default function Mood() {
 
   const handleEdit = (entry: MoodEntry) => {
     setEditingEntry(entry);
-    form.setValue("mood", entry.mood);
-    form.setValue("notes", entry.notes || "");
+    form.reset({
+      mood: entry.mood,
+      notes: entry.notes || "",
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -441,7 +443,7 @@ export default function Mood() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mood</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger data-testid="select-edit-mood">
                           <SelectValue />
