@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Moon, Smile, BookOpen, Pill, MessageCircle, Activity, Trophy } from "lucide-react";
+import { Home, Moon, Smile, BookOpen, Pill, MessageCircle, Activity, Trophy, Music } from "lucide-react";
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
@@ -7,7 +7,7 @@ const navigation = [
   { name: "Exercise", href: "/exercise", icon: Activity },
   { name: "Mood", href: "/mood", icon: Smile },
   { name: "Meds", href: "/medication", icon: Pill },
-  { name: "Progress", href: "/progress", icon: Trophy },
+  { name: "Sound", href: "/soundscape", icon: Music },
 ];
 
 export default function MobileNav() {

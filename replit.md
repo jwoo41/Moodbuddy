@@ -42,6 +42,14 @@ The application follows a dashboard-centric approach where users can view aggreg
   - Optional notification setup with time picker for daily check-ins
   - Interactive first mood check with emoji selection and sample progress indicators
   - Clean design with step progress indicators, smooth navigation, and intuitive user flow
+- **Adaptive Background Music/Soundscape System**: Implemented mood-responsive ambient audio feature with:
+  - Real-time mood detection from latest mood entries to automatically adapt soundscape
+  - Five distinct soundscapes: Uplifting Birds (very happy), Peaceful Garden (happy), Gentle Rain (neutral), Ocean Waves (sad), Forest Embrace (very sad)
+  - Web Audio API integration for procedurally generated ambient sounds specific to each mood
+  - Volume control with real-time adjustment and visual feedback
+  - Play/pause functionality with seamless looping
+  - Dynamic color themes that match the current active soundscape
+  - Automatic soundscape switching when mood changes while playing
 
 ## User Preferences
 
