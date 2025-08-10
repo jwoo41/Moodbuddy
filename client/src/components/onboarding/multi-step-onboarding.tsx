@@ -149,7 +149,7 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
             
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🤖</span>
+                <span className="text-2xl">😊</span>
               </div>
               <div>
                 <div className="font-medium text-gray-900">Ask questions & discuss mental health topics</div>
