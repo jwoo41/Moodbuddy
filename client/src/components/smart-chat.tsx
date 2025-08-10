@@ -27,6 +27,7 @@ export default function SmartChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasOpenAI, setHasOpenAI] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,18 +54,26 @@ export default function SmartChat() {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
+    const inputValue = input; // Store input value before clearing
     setInput("");
     
     // Add user message
     const newUserMessage: ChatMessage = {
       id: Date.now().toString(),
-      role: "user",
+      role: "user", 
       content: userMessage,
       timestamp: new Date()
     };
     setMessages(prev => [...prev, newUserMessage]);
 
     setIsLoading(true);
+    
+    // Keep focus on input to prevent it from disappearing
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 100);
 
     try {
       if (hasOpenAI) {
@@ -109,8 +118,18 @@ export default function SmartChat() {
         description: "Failed to get a response. Please try again.",
         variant: "destructive"
       });
+      
+      // Restore input value on error
+      setInput(userMessage);
     } finally {
       setIsLoading(false);
+      
+      // Re-focus input after response to prevent disappearing
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
     }
   };
 
@@ -220,12 +239,15 @@ export default function SmartChat() {
         <div className="p-4 border-t">
           <div className="flex space-x-2">
             <Input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Tell me what's on your mind..."
               className="flex-1"
               data-testid="input-chat-message"
+              autoFocus
+              disabled={isLoading}
             />
             <Button
               onClick={sendMessage}
