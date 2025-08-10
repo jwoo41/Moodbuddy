@@ -1795,27 +1795,43 @@ export default function Home() {
             )}
           </div>
           
-          {/* Journal Section */}
+          {/* AI Chat Section */}
           <div className="mt-6 pt-4 border-t">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <span className="text-2xl mr-2">📝</span>
-                <span className="font-medium">Daily Journal</span>
+                <div className="w-6 h-6 mr-2 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 100 120" className="rounded-full">
+                    <ellipse cx="50" cy="85" rx="18" ry="15" fill="#FF8A65" />
+                    <circle cx="50" cy="50" r="25" fill="#FF8A65" />
+                    <circle cx="42" cy="42" r="2.5" fill="#1976D2" />
+                    <circle cx="58" cy="42" r="2.5" fill="#1976D2" />
+                    <path d="M 40 58 Q 50 65 60 58" stroke="#1976D2" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <span className="font-medium">AI Chat</span>
               </div>
             </div>
             
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-4">
-                Take a moment to reflect on your day and write down your thoughts.
+                Chat with us about your mental health, get support, or ask questions anytime.
               </p>
-              <Link href="/journal">
+              <Link href="/chat">
                 <Button 
                   variant="outline" 
-                  className="w-full hover:bg-purple-50 hover:border-purple-200 hover:text-purple-800 dark:hover:bg-purple-900/20"
-                  data-testid="button-open-journal"
+                  className="w-full hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 dark:hover:bg-blue-900/20"
+                  data-testid="button-open-chat"
                 >
-                  <span className="text-xl mr-2">📝</span>
-                  Write in Journal
+                  <div className="w-5 h-5 mr-2 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 100 120" className="rounded-full">
+                      <ellipse cx="50" cy="85" rx="18" ry="15" fill="#FF8A65" />
+                      <circle cx="50" cy="50" r="25" fill="#FF8A65" />
+                      <circle cx="42" cy="42" r="2.5" fill="#1976D2" />
+                      <circle cx="58" cy="42" r="2.5" fill="#1976D2" />
+                      <path d="M 40 58 Q 50 65 60 58" stroke="#1976D2" strokeWidth="2" fill="none" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  Chat with us
                 </Button>
               </Link>
             </div>

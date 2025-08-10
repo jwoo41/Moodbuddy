@@ -22,7 +22,7 @@ interface ConversationInterfaceProps {
 }
 
 export default function ConversationInterface({ 
-  title = "MindFlow Companion",
+  title = "MoodBuddy Companion",
   placeholder = "How are you feeling today? You can type or speak...",
   onMessageSend 
 }: ConversationInterfaceProps) {
@@ -30,7 +30,7 @@ export default function ConversationInterface({
     {
       id: '1',
       type: 'assistant',
-      content: "Hello! I'm your MindFlow companion. I'm here to help you track your mental health and wellbeing. How are you feeling today?",
+      content: "Hello! I'm your MoodBuddy companion. I'm here to help you track your mental health and wellbeing. How are you feeling today?",
       timestamp: new Date()
     }
   ]);
