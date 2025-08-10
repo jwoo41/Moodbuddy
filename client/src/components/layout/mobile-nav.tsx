@@ -7,6 +7,7 @@ const navigation = [
   { name: "Exercise", href: "/exercise", icon: Activity },
   { name: "Mood", href: "/mood", icon: Smile },
   { name: "Meds", href: "/medication", icon: Pill },
+  { name: "Progress", href: "/progress", icon: Trophy },
 ];
 
 export default function MobileNav() {
