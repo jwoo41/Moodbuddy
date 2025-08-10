@@ -1291,60 +1291,10 @@ export default function Home() {
                   Enable Reminders
                 </Button>
               )}
-              <Dialog open={isMedDialogOpen} onOpenChange={setIsMedDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" data-testid="button-add-medication-home">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Medication
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add Medication</DialogTitle>
-                  </DialogHeader>
-                  
-                  <Form {...medForm}>
-                    <form onSubmit={medForm.handleSubmit(onMedSubmit)} className="space-y-4">
-                      <FormField
-                        control={medForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Medication Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Sertraline" {...field} data-testid="input-medication-name" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={medForm.control}
-                        name="dosage"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Dosage (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., 50mg (optional)" {...field} data-testid="input-medication-dosage" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={medForm.control}
-                        name="frequency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Frequency</FormLabel>
-                            <Select 
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                handleFrequencyChange(value);
-                              }} 
-                              value={field.value}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
                             >
                               <FormControl>
                                 <SelectTrigger data-testid="select-medication-frequency">
