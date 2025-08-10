@@ -10,7 +10,7 @@ export default function BackgroundMusic({ autoPlay = true }: BackgroundMusicProp
   const gainNodeRef = useRef<GainNode | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.3);
+  const [volume, setVolume] = useState(0.15);
   const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
@@ -40,40 +40,83 @@ export default function BackgroundMusic({ autoPlay = true }: BackgroundMusicProp
         await audioContextRef.current.resume();
       }
 
-      // Create a gentle, calming ambient sound
+      // Stop any existing sounds
       if (oscillatorRef.current) {
         oscillatorRef.current.stop();
       }
 
-      const oscillator = audioContextRef.current!.createOscillator();
-      const filter = audioContextRef.current!.createBiquadFilter();
+      const audioCtx = audioContextRef.current!;
       
-      // Set up a gentle, low-frequency ambient tone
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(80, audioContextRef.current!.currentTime);
+      // Create multiple layers for rich massage-style ambient music
+      const oscillators: OscillatorNode[] = [];
+      const gains: GainNode[] = [];
       
-      // Add gentle frequency modulation for a more natural sound
-      const lfo = audioContextRef.current!.createOscillator();
-      const lfoGain = audioContextRef.current!.createGain();
-      lfo.frequency.setValueAtTime(0.1, audioContextRef.current!.currentTime);
-      lfoGain.gain.setValueAtTime(5, audioContextRef.current!.currentTime);
+      // Base drone - very low frequency for grounding
+      const baseDrone = audioCtx.createOscillator();
+      const baseDroneGain = audioCtx.createGain();
+      baseDrone.type = 'sine';
+      baseDrone.frequency.setValueAtTime(55, audioCtx.currentTime); // A1 note
+      baseDroneGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      baseDrone.connect(baseDroneGain);
+      baseDroneGain.connect(gainNodeRef.current!);
       
+      // Harmonic layer - creates warmth
+      const harmonic = audioCtx.createOscillator();
+      const harmonicGain = audioCtx.createGain();
+      harmonic.type = 'sine';
+      harmonic.frequency.setValueAtTime(165, audioCtx.currentTime); // E3 - perfect fifth
+      harmonicGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      harmonic.connect(harmonicGain);
+      harmonicGain.connect(gainNodeRef.current!);
+      
+      // Gentle pad - higher frequency for texture
+      const pad = audioCtx.createOscillator();
+      const padGain = audioCtx.createGain();
+      pad.type = 'triangle';
+      pad.frequency.setValueAtTime(330, audioCtx.currentTime); // E4
+      padGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+      pad.connect(padGain);
+      padGain.connect(gainNodeRef.current!);
+      
+      // Add gentle LFO for breathing effect
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.05, audioCtx.currentTime); // Very slow, like breathing
+      lfoGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+      
+      // Apply LFO to all layers for subtle breathing effect
       lfo.connect(lfoGain);
-      lfoGain.connect(oscillator.frequency);
+      lfoGain.connect(baseDroneGain.gain);
+      lfoGain.connect(harmonicGain.gain);
+      lfoGain.connect(padGain.gain);
       
-      // Low-pass filter for warmth
+      // Add soft low-pass filtering for warmth
+      const filter = audioCtx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(200, audioContextRef.current!.currentTime);
-      filter.Q.setValueAtTime(1, audioContextRef.current!.currentTime);
+      filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+      filter.Q.setValueAtTime(0.5, audioCtx.currentTime);
       
-      // Connect the audio chain
-      oscillator.connect(filter);
+      // Route everything through the filter
+      baseDroneGain.disconnect();
+      harmonicGain.disconnect();
+      padGain.disconnect();
+      
+      baseDroneGain.connect(filter);
+      harmonicGain.connect(filter);
+      padGain.connect(filter);
       filter.connect(gainNodeRef.current!);
       
-      oscillator.start();
+      // Start all oscillators
+      baseDrone.start();
+      harmonic.start();
+      pad.start();
       lfo.start();
       
-      oscillatorRef.current = oscillator;
+      // Store the main oscillator for cleanup
+      oscillatorRef.current = baseDrone;
+      oscillators.push(baseDrone, harmonic, pad, lfo);
+      
       setIsPlaying(true);
       
     } catch (error) {
