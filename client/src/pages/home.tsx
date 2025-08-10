@@ -1295,105 +1295,159 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="select-medication-frequency">
-                                  <SelectValue placeholder="How often?" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {frequencies.map((freq) => (
-                                  <SelectItem key={freq.value} value={freq.value}>
-                                    {freq.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {selectedFrequency && (
-                        <div>
-                          <FormLabel>Times</FormLabel>
-                          <div className="space-y-2 mt-2">
-                            {medForm.watch("times")?.map((time, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <Input
-                                  type="time"
-                                  value={time || ""}
-                                  onChange={(e) => {
-                                    const times = [...(medForm.getValues("times") || [])];
-                                    times[index] = e.target.value;
-                                    medForm.setValue("times", times);
-                                  }}
-                                  data-testid={`input-medication-time-${index}`}
-                                  className="flex-1"
-                                />
-                                <span className="text-sm text-muted-foreground min-w-12">
-                                  {parseInt(time?.split(':')[0] || '0') < 12 ? 'AM' : 'PM'}
-                                </span>
-                              </div>
-                            )) || []}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex space-x-3 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsMedDialogOpen(false);
-                            medForm.reset({
-                              name: "",
-                              dosage: "",
-                              frequency: "",
-                              times: [],
-                            });
-                            setSelectedFrequency("");
-                          }}
-                          className="flex-1"
-                          data-testid="button-cancel-medication"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={addMedicationMutation.isPending}
-                          className="flex-1"
-                          data-testid="button-save-medication"
-                        >
-{addMedicationMutation.isPending ? "Saving..." : "Save Medication"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-              
-              {medications.length > 0 && !notificationsEnabled && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={setupNotifications}
-                  className="flex items-center space-x-1"
-                  data-testid="button-enable-notifications"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span>Enable Reminders</span>
+          {/* Add Medication Button */}
+          <div className="flex items-center space-x-2 mb-4">
+            <Dialog open={isMedDialogOpen} onOpenChange={setIsMedDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" data-testid="button-add-medication">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Medication
                 </Button>
-              )}
-              {notificationsEnabled && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-green-600 dark:text-green-400">✓ Reminders On</span>
-                </div>
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Medication</DialogTitle>
+                </DialogHeader>
+                <Form {...medForm}>
+                  <form onSubmit={medForm.handleSubmit(onMedSubmit)} className="space-y-4">
+                    <FormField
+                      control={medForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Medication Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Aspirin" {...field} data-testid="input-medication-name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={medForm.control}
+                      name="dosage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dosage (optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., 100mg" {...field} data-testid="input-medication-dosage" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={medForm.control}
+                      name="frequency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Frequency</FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedFrequency(value);
+                            const freq = frequencies.find(f => f.value === value);
+                            if (freq) {
+                              const times = Array(freq.times).fill("");
+                              medForm.setValue("times", times);
+                            }
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-medication-frequency">
+                                <SelectValue placeholder="How often?" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {frequencies.map((freq) => (
+                                <SelectItem key={freq.value} value={freq.value}>
+                                  {freq.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {selectedFrequency && (
+                      <div>
+                        <FormLabel>Times</FormLabel>
+                        <div className="space-y-2 mt-2">
+                          {medForm.watch("times")?.map((time, index) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <Input
+                                type="time"
+                                value={time || ""}
+                                onChange={(e) => {
+                                  const times = [...(medForm.getValues("times") || [])];
+                                  times[index] = e.target.value;
+                                  medForm.setValue("times", times);
+                                }}
+                                data-testid={`input-medication-time-${index}`}
+                                className="flex-1"
+                              />
+                              <span className="text-sm text-muted-foreground min-w-12">
+                                {parseInt(time?.split(':')[0] || '0') < 12 ? 'AM' : 'PM'}
+                              </span>
+                            </div>
+                          )) || []}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsMedDialogOpen(false);
+                          medForm.reset({
+                            name: "",
+                            dosage: "",
+                            frequency: "",
+                            times: [],
+                          });
+                          setSelectedFrequency("");
+                        }}
+                        className="flex-1"
+                        data-testid="button-cancel-medication"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={addMedicationMutation.isPending}
+                        className="flex-1"
+                        data-testid="button-save-medication"
+                      >
+                        {addMedicationMutation.isPending ? "Saving..." : "Save Medication"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+            
+            {medications.length > 0 && !notificationsEnabled && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={setupNotifications}
+                className="flex items-center space-x-1"
+                data-testid="button-enable-notifications"
+              >
+                <Bell className="w-4 h-4" />
+                <span>Enable Reminders</span>
+              </Button>
+            )}
+            {notificationsEnabled && (
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-green-600 dark:text-green-400">✓ Reminders On</span>
+              </div>
+            )}
+          </div>
           {notificationsEnabled && medications.length > 0 && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
               <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
