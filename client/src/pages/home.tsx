@@ -22,6 +22,8 @@ import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
 import InspirationalQuotes from "@/components/inspirational-quotes";
 import MedicationCard from "@/components/medication/medication-card";
+import { scheduleLocalNotificationsForMed, cancelNotificationsForMed } from "@/utils/notifications";
+import type { Med } from "@shared/types/meds";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -335,9 +337,30 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/medications", data);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
       handleAchievements(data);
+      
+      // Schedule notifications for the new medication if enabled
+      if (data.medication && data.medication.notificationsEnabled) {
+        try {
+          const medForNotification: Med = {
+            id: data.medication.id,
+            name: data.medication.name,
+            strength: 0,
+            unit: 'mg',
+            doseCount: 1,
+            times: data.medication.times,
+            active: data.medication.isActive,
+            createdAt: data.medication.createdAt,
+            updatedAt: data.medication.createdAt
+          };
+          await scheduleLocalNotificationsForMed(medForNotification);
+        } catch (error) {
+          console.warn('Failed to schedule notifications:', error);
+        }
+      }
+      
       toast({
         title: "Medication added!",
         description: "Your medication has been saved successfully.",
@@ -513,7 +536,34 @@ export default function Home() {
       });
       
       if (response.ok) {
+        const updatedMed = await response.json();
         queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+        
+        // Schedule or cancel notifications based on the new setting
+        if (updatedMed.medication) {
+          const medForNotification: Med = {
+            id: updatedMed.medication.id,
+            name: updatedMed.medication.name,
+            strength: 0,
+            unit: 'mg',
+            doseCount: 1,
+            times: updatedMed.medication.times,
+            active: updatedMed.medication.isActive,
+            createdAt: updatedMed.medication.createdAt,
+            updatedAt: updatedMed.medication.createdAt
+          };
+          
+          try {
+            if (enabled && updatedMed.medication.isActive) {
+              await scheduleLocalNotificationsForMed(medForNotification);
+            } else {
+              await cancelNotificationsForMed(medForNotification);
+            }
+          } catch (error) {
+            console.warn('Failed to update medication notifications:', error);
+          }
+        }
+        
         toast({
           title: enabled ? "Notifications enabled" : "Notifications disabled",
           description: `Medication reminders ${enabled ? 'turned on' : 'turned off'}`,
