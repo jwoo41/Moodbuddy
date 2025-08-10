@@ -19,7 +19,7 @@ import { SleepEntry } from "@shared/schema";
 const sleepFormSchema = z.object({
   bedtime: z.string().min(1, "Bedtime is required"),
   wakeTime: z.string().min(1, "Wake time is required"),
-  quality: z.string().min(1, "Sleep quality is required"),
+  quality: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -61,7 +61,7 @@ export default function Sleep() {
         bedtime: new Date(`${new Date().toDateString()} ${data.bedtime}:00`),
         wakeTime: new Date(`${new Date().toDateString()} ${data.wakeTime}:00`),
         hoursSlept,
-        quality: data.quality,
+        quality: data.quality || "good", // Default to "good" if not provided
         notes: data.notes || undefined,
       };
 
@@ -179,7 +179,7 @@ export default function Sleep() {
                   name="quality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sleep Quality</FormLabel>
+                      <FormLabel>Sleep Quality (optional)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-sleep-quality">
