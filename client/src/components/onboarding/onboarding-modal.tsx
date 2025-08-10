@@ -74,7 +74,11 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-2xl">
-            <Heart className="w-8 h-8 text-primary mr-2" />
+            <img 
+              src="/attached_assets/E8DD0ACA-4AA3-4CE3-9E12-F53F81926CC4_1754843158324.png" 
+              alt="MoodBuddy Avatar" 
+              className="w-8 h-8 rounded-full object-cover mr-2"
+            />
             Welcome to MoodBuddy!
           </DialogTitle>
           <p className="text-muted-foreground">

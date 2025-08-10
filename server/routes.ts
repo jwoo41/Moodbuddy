@@ -556,9 +556,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response right now. Please try again.";
       
       res.json({ response });
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenAI API error:', error);
-      res.status(500).json({ error: 'Failed to generate response' });
+      
+      // Check if it's a quota/billing error and provide fallback
+      if (error.status === 429 || error.code === 'insufficient_quota') {
+        // Return a supportive fallback response when quota is exceeded
+        const fallbackResponses = [
+          "I'm here to support you, even when my advanced features aren't available. Your feelings are valid and you're not alone in this journey. What's been on your mind today?",
+          "Thank you for sharing with me. While I might not have all my advanced capabilities right now, I want you to know that you're valued and your wellbeing matters deeply. How can I support you today?",
+          "I appreciate you reaching out. Even in simple ways, I'm here to listen and remind you that you have incredible strength within you. What would be most helpful for you right now?",
+          "Your courage in seeking support shows how much you care about yourself, and that's beautiful. While I may have limited features at the moment, my care for your wellbeing remains constant. Tell me what's in your heart."
+        ];
+        const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        res.json({ response: randomResponse });
+      } else {
+        res.status(500).json({ error: 'Failed to generate response' });
+      }
     }
   });
 
