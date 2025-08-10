@@ -193,33 +193,31 @@ export default function SmartChat() {
     <Card className="h-[500px] flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30">
-            <svg width="40" height="40" viewBox="0 0 100 120" className="rounded-lg">
-              {/* Body */}
-              <ellipse cx="50" cy="95" rx="20" ry="18" fill="#FF8A65" />
-              {/* Head with light blue background circle */}
-              <circle cx="50" cy="50" r="28" fill="#B3E5FC" />
-              {/* Face */}
-              <circle cx="50" cy="50" r="23" fill="#FF8A65" />
-              {/* Eyes */}
-              <circle cx="42" cy="44" r="3" fill="#1976D2" />
-              <circle cx="58" cy="44" r="3" fill="#1976D2" />
-              {/* Smile */}
-              <path d="M 38 58 Q 50 68 62 58" stroke="#1976D2" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center">
+            <svg width="40" height="50" viewBox="0 0 100 120" className="rounded-lg">
+              {/* Outer light blue circle background */}
+              <circle cx="50" cy="50" r="48" fill="#B3E5FC" />
+              {/* Orange head/face */}
+              <circle cx="50" cy="50" r="35" fill="#FF8A65" />
+              {/* Blue eyes */}
+              <circle cx="40" cy="45" r="4" fill="#1565C0" />
+              <circle cx="60" cy="45" r="4" fill="#1565C0" />
+              {/* Blue smile */}
+              <path d="M 35 60 Q 50 75 65 60" stroke="#1565C0" strokeWidth="3" fill="none" strokeLinecap="round" />
+              {/* Orange body/torso */}
+              <ellipse cx="50" cy="90" rx="25" ry="20" fill="#FF8A65" />
               {/* Arms */}
-              <ellipse cx="25" cy="80" rx="8" ry="12" fill="#FF8A65" transform="rotate(-20 25 80)" />
-              <ellipse cx="75" cy="80" rx="8" ry="12" fill="#FF8A65" transform="rotate(20 75 80)" />
+              <ellipse cx="20" cy="85" rx="10" ry="15" fill="#FF8A65" transform="rotate(-25 20 85)" />
+              <ellipse cx="80" cy="85" rx="10" ry="15" fill="#FF8A65" transform="rotate(25 80 85)" />
             </svg>
           </div>
           <CardTitle>
-            {hasOpenAI ? "Smart Chat with MoodBuddy" : "Chat with MoodBuddy"}
+            Chat with MoodBuddy
           </CardTitle>
         </div>
-        {!hasOpenAI && (
-          <p className="text-sm text-muted-foreground">
-            Add your OpenAI API key in secrets for enhanced AI conversations
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground">
+          Your compassionate AI companion for mental health support
+        </p>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
@@ -252,25 +250,31 @@ export default function SmartChat() {
             )}
           </div>
         </ScrollArea>
-        <div className="p-4 border-t">
+        <div className="p-4 border-t bg-white dark:bg-card">
           <div className="flex space-x-2">
-            <Input
+            <input
               ref={inputRef}
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Tell me what's on your mind..."
-              className="flex-1 min-h-[40px]"
-              data-testid="input-chat-message"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               disabled={isLoading}
+              data-testid="input-chat-message"
             />
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
               size="sm"
               data-testid="button-send-message"
+              className="px-4 py-2"
             >
-              <Send className="w-4 h-4" />
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
