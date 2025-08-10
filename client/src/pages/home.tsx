@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Heart, Moon, Pill, PenTool, MessageCircle, User, LogOut, Plus, Check, X, Bell, Activity, Weight } from "lucide-react";
 import { Link } from "wouter";
@@ -20,7 +20,6 @@ import { MultiStepOnboarding } from "@/components/onboarding/multi-step-onboardi
 import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
-
 import InspirationalQuotes from "@/components/inspirational-quotes";
 
 const moodEmojis = {
@@ -70,12 +69,10 @@ export default function Home() {
   // Helper function to handle achievements consistently
   const handleAchievements = (data: any) => {
     if (data.gamification?.newAchievements?.length > 0) {
-      // Clear any existing timeout to prevent duplicate processing
       if (achievementTimeoutRef.current) {
         clearTimeout(achievementTimeoutRef.current);
       }
       
-      // Small delay to batch multiple achievements from simultaneous actions
       achievementTimeoutRef.current = setTimeout(() => {
         setPendingAchievements(prev => {
           const existingIds = new Set(prev.map(a => a.id));
@@ -95,47 +92,12 @@ export default function Home() {
     }
   }, [user]);
 
-  // Profile form
-  const profileForm = useForm<ProfileFormData>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      displayName: user?.displayName || user?.firstName || '',
-    },
-  });
-
-  // Profile update mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: ProfileFormData) => {
-      const response = await apiRequest("PUT", `/api/auth/user`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      toast({
-        title: "Profile updated",
-        description: "Your display name has been saved successfully.",
-      });
-      setIsProfileDialogOpen(false);
-    },
-    onError: (error) => {
-      console.error('Profile update error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+  // State variables
   const [sleepForm, setSleepForm] = useState({ 
     bedtime: "", 
     wakeTime: ""
   });
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [bedtimeNotificationEnabled, setBedtimeNotificationEnabled] = useState(false);
-  const [bedtimeReminderTime, setBedtimeReminderTime] = useState("22:00");
-  const [wakeUpNotificationEnabled, setWakeUpNotificationEnabled] = useState(false);
-  const [wakeUpReminderTime, setWakeUpReminderTime] = useState("07:00");
-  const [scheduledNotifications, setScheduledNotifications] = useState<number[]>([]);
   const [isMedDialogOpen, setIsMedDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState("");
@@ -143,6 +105,7 @@ export default function Home() {
   const [moodDescription, setMoodDescription] = useState("");
   const [showMoodDescription, setShowMoodDescription] = useState(false);
 
+  // Data queries
   const { data: moodEntries = [] } = useQuery<MoodEntry[]>({
     queryKey: ["/api/mood"],
   });
@@ -167,6 +130,45 @@ export default function Home() {
     queryKey: ['/api/weight'],
   });
 
+  // Helper functions
+  const getTimeSlots = () => {
+    switch (selectedFrequency) {
+      case "daily":
+        return ["08:00"];
+      case "twice-daily":
+        return ["08:00", "20:00"];
+      case "three-times-daily":
+        return ["08:00", "12:00", "20:00"];
+      default:
+        return [];
+    }
+  };
+
+  const checkMoodAlerts = (entries: MoodEntry[]) => {
+    // Implementation for mood alert checking
+    const recentEntries = entries.slice(-5);
+    const lowMoodCount = recentEntries.filter(entry => 
+      entry.mood === "very-sad" || entry.mood === "sad"
+    ).length;
+    
+    if (lowMoodCount >= 5) {
+      console.log("Alert: Low mood pattern detected");
+    }
+  };
+
+  const checkMedicationConsistency = (meds: Medication[], taken: MedicationTaken[]) => {
+    // Implementation for medication consistency checking
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    
+    const recentTaken = taken.filter(mt => new Date(mt.takenAt) >= threeDaysAgo);
+    const adherenceRate = recentTaken.length / (meds.length * 3);
+    
+    if (adherenceRate < 0.7 && meds.length > 0) {
+      console.log("Alert: Low medication adherence");
+    }
+  };
+
   // Run alert checks when data changes
   useEffect(() => {
     if (moodEntries.length > 0) {
@@ -176,6 +178,14 @@ export default function Home() {
       checkMedicationConsistency(medications, medicationTaken);
     }
   }, [moodEntries, medications, medicationTaken]);
+
+  // Form configurations
+  const profileForm = useForm<ProfileFormData>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      displayName: user?.displayName || user?.firstName || '',
+    },
+  });
 
   const medForm = useForm<MedicationFormData>({
     resolver: zodResolver(medicationFormSchema),
@@ -187,14 +197,34 @@ export default function Home() {
     },
   });
 
+  // Helper functions for data
+  const todaysMood = moodEntries.find(entry => 
+    new Date(entry.createdAt).toDateString() === new Date().toDateString()
+  );
+
+  const todaysSleep = sleepEntries.find(entry => 
+    new Date(entry.createdAt).toDateString() === new Date().toDateString()
+  );
+
+  const getTodaysExercise = () => {
+    return exerciseEntries.find(entry => 
+      new Date(entry.createdAt).toDateString() === new Date().toDateString()
+    );
+  };
+
+  const getTodaysWeight = () => {
+    return weightEntries.find(entry => 
+      new Date(entry.createdAt).toDateString() === new Date().toDateString()
+    );
+  };
+
+  // Mutations
   const addMoodMutation = useMutation({
     mutationFn: async (data: { mood: string; description?: string }) => {
       if (todaysMood) {
-        // Update existing mood
         const response = await apiRequest("PUT", `/api/mood/${todaysMood.id}`, data);
         return response.json();
       } else {
-        // Create new mood
         const response = await apiRequest("POST", "/api/mood", data);
         return response.json();
       }
@@ -203,7 +233,6 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/mood"] });
       queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
       
-      // Handle achievements if returned from API
       handleAchievements(data);
       
       let description = todaysMood ? "Your mood has been updated." : "Thanks for sharing how you're feeling!";
@@ -226,12 +255,10 @@ export default function Home() {
       bedtime: string; 
       wakeTime: string;
     }) => {
-      // Validate input
       if (!data.bedtime || !data.wakeTime) {
         throw new Error("Both bedtime and wake time are required");
       }
 
-      // Validate time format (HH:MM)
       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(data.bedtime) || !timeRegex.test(data.wakeTime)) {
         throw new Error("Please enter valid times in HH:MM format");
@@ -240,14 +267,12 @@ export default function Home() {
       const bedtime = new Date(`${new Date().toDateString()} ${data.bedtime}:00`);
       const wakeTime = new Date(`${new Date().toDateString()} ${data.wakeTime}:00`);
       
-      // If wake time is earlier than bedtime, assume it's the next day
       if (wakeTime < bedtime) {
         wakeTime.setDate(wakeTime.getDate() + 1);
       }
       
       const hoursSlept = Math.round((wakeTime.getTime() - bedtime.getTime()) / (1000 * 60 * 60) * 10) / 10;
 
-      // Validate reasonable sleep duration (1-16 hours)
       if (hoursSlept < 1 || hoursSlept > 16) {
         throw new Error("Sleep duration must be between 1 and 16 hours. Please check your times.");
       }
@@ -256,15 +281,13 @@ export default function Home() {
         bedtime,
         wakeTime,
         hoursSlept,
-        quality: "good", // Default quality for quick logging
+        quality: "good",
       };
 
       if (todaysSleep) {
-        // Update existing sleep entry
         const response = await apiRequest("PUT", `/api/sleep/${todaysSleep.id}`, sleepData);
         return response.json();
       } else {
-        // Create new sleep entry
         const response = await apiRequest("POST", "/api/sleep", sleepData);
         return response.json();
       }
@@ -289,6 +312,31 @@ export default function Home() {
     },
   });
 
+  const addMedicationMutation = useMutation({
+    mutationFn: async (data: MedicationFormData) => {
+      const response = await apiRequest("POST", "/api/medications", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+      handleAchievements(data);
+      toast({
+        title: "Medication added!",
+        description: "Your medication has been saved successfully.",
+      });
+      setIsMedDialogOpen(false);
+      medForm.reset();
+      setSelectedFrequency("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add medication. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const markMedicationTakenMutation = useMutation({
     mutationFn: async (data: { medicationId: string; scheduledTime: string }) => {
       const response = await apiRequest("POST", "/api/medications/taken", data);
@@ -302,6 +350,74 @@ export default function Home() {
       });
     },
   });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: ProfileFormData) => {
+      const response = await apiRequest("PUT", `/api/auth/user`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      toast({
+        title: "Profile updated",
+        description: "Your display name has been saved successfully.",
+      });
+      setIsProfileDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Profile update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for actions
+  const markMedicationTaken = (medicationId: string, scheduledTime: string) => {
+    markMedicationTakenMutation.mutate({ medicationId, scheduledTime });
+  };
+
+  const skipMedication = (medicationId: string, scheduledTime: string) => {
+    // For skip functionality, we might want to track this differently
+    toast({
+      title: "Medication skipped",
+      description: "Dose has been skipped for this time.",
+    });
+  };
+
+  const handleFrequencyChange = (value: string) => {
+    setSelectedFrequency(value);
+    medForm.setValue("frequency", value);
+    const timeSlots = getTimeSlots();
+    medForm.setValue("times", timeSlots);
+  };
+
+  const setupNotifications = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setNotificationsEnabled(true);
+        toast({
+          title: "Notifications enabled",
+          description: "You'll receive medication reminders",
+        });
+      } else {
+        toast({
+          title: "Notifications blocked",
+          description: "Please enable notifications in your browser settings",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to setup notifications",
+        variant: "destructive",
+      });
+    }
+  };
 
   const toggleMedicationNotifications = async (medicationId: string, enabled: boolean) => {
     try {
@@ -325,1334 +441,400 @@ export default function Home() {
     }
   };
 
-  const addMedicationMutation = useMutation({
-    mutationFn: async (data: MedicationFormData) => {
-      // Check if we're editing an existing medication
-      const existingMedication = medications.find(med => med.name === data.name && med.dosage === data.dosage);
-      
-      if (existingMedication) {
-        // Update existing medication
-        const response = await apiRequest("PUT", `/api/medications/${existingMedication.id}`, data);
-        return response.json();
-      } else {
-        // Create new medication
-        const response = await apiRequest("POST", "/api/medications", data);
-        return response.json();
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
-      const existingMedication = medications.find(med => med.name === medForm.getValues("name"));
-      toast({
-        title: existingMedication ? "Medication updated!" : "Medication added!",
-        description: existingMedication ? "Your medication has been updated." : "Your medication has been added successfully.",
-      });
-      setIsMedDialogOpen(false);
-      medForm.reset({
-        name: "",
-        dosage: "",
-        frequency: "",
-        times: [],
-      });
-      setSelectedFrequency("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save medication. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getTodaysMood = () => {
-    const today = new Date().toDateString();
-    return moodEntries.find(entry => 
-      new Date(entry.createdAt).toDateString() === today
-    );
-  };
-
-  const getTodaysSleep = () => {
-    const today = new Date().toDateString();
-    return sleepEntries.find(entry => 
-      new Date(entry.createdAt).toDateString() === today
-    );
-  };
-
-  const getTodaysExercise = () => {
-    const today = new Date().toDateString();
-    return exerciseEntries.find(entry => 
-      new Date(entry.createdAt).toDateString() === today
-    );
-  };
-
-  const getTodaysWeight = () => {
-    const today = new Date().toDateString();
-    return weightEntries.find(entry => 
-      new Date(entry.createdAt).toDateString() === today
-    );
-  };
-
-  // Exercise form and mutations
-  const addExerciseMutation = useMutation({
-    mutationFn: async (data: { exercised: boolean; notes?: string }) => {
-      const todaysExercise = getTodaysExercise();
-      
-      if (todaysExercise) {
-        // Update existing exercise entry
-        const response = await apiRequest("PUT", `/api/exercise/${todaysExercise.id}`, data);
-        return response.json();
-      } else {
-        // Create new exercise entry
-        const response = await apiRequest("POST", "/api/exercise", data);
-        return response.json();
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/exercise"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
-      
-      // Handle achievements if returned from API
-      handleAchievements(data);
-      
-      let description = "Your exercise has been recorded for today.";
-      if (data.gamification?.streak > 1) {
-        description += ` 🔥 ${data.gamification.streak} day streak!`;
-      }
-      if (data.gamification?.isNewRecord) {
-        description += " 🎉 New record!";
-      }
-      
-      toast({
-        title: "Exercise logged",
-        description,
-      });
-    },
-  });
-
-  // Weight state and mutations
-  const [weightForm, setWeightForm] = useState({ weight: "", unit: "lbs", notes: "" });
-
-  const addWeightMutation = useMutation({
-    mutationFn: async (data: { weight: number; unit: string; notes?: string }) => {
-      const response = await apiRequest("POST", "/api/weight", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
-      
-      // Handle achievements if returned from API
-      handleAchievements(data);
-      
-      let description = "Your weight has been recorded successfully.";
-      if (data.gamification?.streak > 1) {
-        description += ` 🔥 ${data.gamification.streak} day streak!`;
-      }
-      if (data.gamification?.isNewRecord) {
-        description += " 🎉 New record!";
-      }
-      
-      toast({
-        title: "Weight logged",
-        description,
-      });
-      setWeightForm({ weight: "", unit: "lbs", notes: "" });
-    },
-  });
-
-  const updateWeightMutation = useMutation({
-    mutationFn: async (data: { id: string; weight: number; unit: string; notes?: string }) => {
-      const { id, ...updateData } = data;
-      const response = await apiRequest("PUT", `/api/weight/${id}`, updateData);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/streaks"] });
-      
-      // Handle achievements if returned from API (weight updates can also earn achievements)
-      handleAchievements(data);
-      
-      toast({
-        title: "Weight updated",
-        description: "Your weight has been updated successfully.",
-      });
-      setWeightForm({ weight: "", unit: "lbs", notes: "" });
-    },
-  });
-
-  const isMedicationTakenToday = (medicationId: string, scheduledTime: string) => {
-    const today = new Date().toDateString();
-    return medicationTaken.some(record => 
-      record.medicationId === medicationId &&
-      record.scheduledTime === scheduledTime &&
-      new Date(record.takenAt).toDateString() === today
-    );
-  };
-
-  const generateTimeSlots = (count: number) => {
-    const times = [];
-    const startHour = 8; // Start at 8 AM
-    const interval = Math.floor(12 / count); // Spread over 12 hours
-
-    for (let i = 0; i < count; i++) {
-      const hour = startHour + (i * interval);
-      const timeString = `${hour.toString().padStart(2, "0")}:00`;
-      times.push(timeString);
-    }
-    return times;
-  };
-
-  const handleFrequencyChange = (frequency: string) => {
-    setSelectedFrequency(frequency);
-    const freqData = frequencies.find(f => f.value === frequency);
-    if (freqData) {
-      const defaultTimes = generateTimeSlots(freqData.times);
-      medForm.setValue("frequency", frequency);
-      medForm.setValue("times", defaultTimes);
-      // Force re-render by triggering form validation
-      medForm.trigger("times");
-    }
+  const onMoodSubmit = (mood: string, description?: string) => {
+    addMoodMutation.mutate({ mood, description });
+    setSelectedMood(null);
+    setMoodDescription("");
+    setShowMoodDescription(false);
   };
 
   const onMedSubmit = (data: MedicationFormData) => {
-    console.log("Submitting medication:", data);
-    if (!data.times || data.times.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one time for your medication.",
-        variant: "destructive",
-      });
-      return;
-    }
     addMedicationMutation.mutate(data);
   };
 
-  const todaysMood = getTodaysMood();
-  const todaysSleep = getTodaysSleep();
-
-  // Clear all scheduled notifications when component unmounts or notifications are disabled
-  useEffect(() => {
-    return () => {
-      scheduledNotifications.forEach(id => clearTimeout(id));
-    };
-  }, [scheduledNotifications]);
-
-  // Re-schedule notifications when medications change or notifications are enabled
-  useEffect(() => {
-    if (notificationsEnabled) {
-      if (medications.length > 0) {
-        scheduleAllMedicationNotifications();
-      }
-      if (bedtimeNotificationEnabled) {
-        scheduleBedtimeNotification();
-      }
-      if (wakeUpNotificationEnabled) {
-        scheduleWakeUpNotification();
-      }
-    }
-  }, [medications, notificationsEnabled, bedtimeNotificationEnabled, bedtimeReminderTime, wakeUpNotificationEnabled, wakeUpReminderTime]);
-
-  const setupNotifications = async () => {
-    if (!("Notification" in window)) {
-      toast({
-        title: "Notifications not supported",
-        description: "Your browser doesn't support notifications. App reminders will still work.",
-      });
-      // Enable app-only notifications as fallback
-      setNotificationsEnabled(true);
-      return;
-    }
-
-    try {
-      // Check current permission status
-      let permission = Notification.permission;
-      
-      if (permission === "default") {
-        // Request permission only if not already decided
-        permission = await Notification.requestPermission();
-      }
-      
-      if (permission === "granted") {
-        setNotificationsEnabled(true);
-        scheduleAllMedicationNotifications();
-        toast({
-          title: "Notifications enabled",
-          description: "You'll receive browser notifications for medications and sleep reminders",
-        });
-        
-        // Send confirmation notification
-        try {
-          new Notification("MoodBuddy Notifications Active", {
-            body: "You'll receive reminders like this",
-            icon: '/icon-192.svg',
-            tag: 'setup-confirmation',
-          });
-        } catch (notifError) {
-          console.log("Notification creation failed, but permissions granted");
-        }
-        
-      } else if (permission === "denied") {
-        toast({
-          title: "Browser notifications blocked",
-          description: "In-app reminders will still work. To enable browser notifications: click the lock icon in your address bar → Allow notifications",
-        });
-        // Still enable app notifications as fallback
-        setNotificationsEnabled(true);
-      } else {
-        toast({
-          title: "Permission not granted",
-          description: "App reminders will work without browser notifications",
-        });
-        setNotificationsEnabled(true);
-      }
-    } catch (error) {
-      console.error('Notification setup error:', error);
-      toast({
-        title: "Using app reminders only",
-        description: "Browser notifications unavailable, but medication tracking reminders will still work in the app",
-      });
-      // Always enable app-level notifications as fallback
-      setNotificationsEnabled(true);
-    }
-  };
-
-  // Alert system functions
-  const checkMoodAlerts = (moodEntries: MoodEntry[]) => {
-    if (moodEntries.length < 5) return;
-    
-    const recentMoods = moodEntries.slice(0, 5);
-    const lowMoodCount = recentMoods.filter(entry => 
-      entry.mood === 'sad' || entry.mood === 'very-sad'
-    ).length;
-    
-    if (lowMoodCount === 5) {
-      toast({
-        title: "🚨 Mental Health Alert",
-        description: "You've reported low mood for 5 days in a row. Consider reaching out to a healthcare professional for support.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const checkMedicationConsistency = (medications: Medication[], takenRecords: MedicationTaken[]) => {
-    const today = new Date();
-    const threeDaysAgo = new Date(today.getTime() - (3 * 24 * 60 * 60 * 1000));
-    
-    medications.forEach(med => {
-      // Check if medication was created more than 3 days ago
-      const medicationCreated = new Date(med.createdAt);
-      const daysSinceCreated = Math.floor((today.getTime() - medicationCreated.getTime()) / (24 * 60 * 60 * 1000));
-      
-      // Only check adherence if medication has been tracked for at least 3 full days
-      if (daysSinceCreated < 3) {
-        return; // Skip adherence check for new medications
-      }
-      
-      const expectedDoses = med.frequency === 'daily' ? 3 : med.frequency === 'twice-daily' ? 6 : 9; // 3 days worth
-      const recentTaken = takenRecords.filter(record => 
-        record.medicationId === med.id &&
-        new Date(record.takenAt) >= threeDaysAgo
-      );
-      
-      // Calculate adherence percentage
-      const adherenceRate = recentTaken.length / expectedDoses;
-      
-      if (adherenceRate < 0.7) { // Less than 70% adherence over 3 days
-        toast({
-          title: "💊 Medication Reminder",
-          description: `You haven't been taking ${med.name} consistently for 3 days. Staying on track with medication is important for your health.`,
-          variant: "destructive",
-        });
-      }
-    });
-  };
-
-  // Test notification functionality
-  const testNotification = () => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      try {
-        const notification = new Notification("🔔 Test Notification", {
-          body: "Notifications are working! You'll receive reminders like this.",
-          icon: '/icon-192.svg',
-          tag: 'test-notification',
-        });
-
-        setTimeout(() => {
-          try {
-            notification.close();
-          } catch (e) {
-            // Notification might already be closed
-          }
-        }, 5000);
-        
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-
-        toast({
-          title: "Test notification sent",
-          description: "Check if you received the browser notification",
-        });
-      } catch (error) {
-        console.error("Test notification failed:", error);
-        toast({
-          title: "Browser notification test failed",
-          description: "App reminders will still work for your medications",
-        });
-      }
-    } else {
-      toast({
-        title: "App reminder test",
-        description: "This is how medication reminders will appear in the app. Browser notifications need to be enabled separately.",
-      });
-    }
-  };
-
-  const scheduleAllMedicationNotifications = () => {
-    // Clear all existing medication notifications
-    scheduledNotifications.forEach(id => clearTimeout(id));
-    
-    const newNotificationIds: number[] = [];
-    
-    medications.forEach(medication => {
-      // Only schedule notifications if they're enabled for this specific medication
-      if (medication.notificationsEnabled !== false) {
-        medication.times?.forEach(time => {
-          console.log(`Scheduling notification for ${medication.name} at ${time}`);
-          const notificationId = scheduleMedicationNotification(medication.name, time, medication.dosage || undefined);
-          if (notificationId) {
-            newNotificationIds.push(notificationId);
-          }
-        });
-      } else {
-        console.log(`Skipping notifications for ${medication.name} - disabled by user`);
-      }
-    });
-    
-    console.log(`Scheduled ${newNotificationIds.length} medication notifications`);
-    setScheduledNotifications(newNotificationIds);
-  };
-
-  const scheduleBedtimeNotification = () => {
-    if (!bedtimeNotificationEnabled || !notificationsEnabled) return;
-    
-    const now = new Date();
-    const [hours, minutes] = bedtimeReminderTime.split(':').map(Number);
-    
-    // Create notification time for today
-    const notificationTime = new Date();
-    notificationTime.setHours(hours, minutes, 0, 0);
-    
-    // If time has passed today, schedule for tomorrow
-    if (notificationTime <= now) {
-      notificationTime.setDate(notificationTime.getDate() + 1);
-    }
-    
-    const timeUntilNotification = notificationTime.getTime() - now.getTime();
-    
-    const timeoutId = window.setTimeout(() => {
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(`🛏️ Bedtime Reminder`, {
-          body: `Time to wind down for bed. Good sleep helps your mental health!`,
-          icon: '/icon-192.svg',
-          tag: 'bedtime-reminder',
-          badge: '/icon-192.svg',
-          requireInteraction: true,
-        });
-
-        // Auto-close notification after 45 seconds
-        setTimeout(() => notification.close(), 45000);
-
-        // Handle notification click
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-      }
-      
-      // Schedule the next bedtime notification for tomorrow
-      scheduleBedtimeNotification();
-    }, timeUntilNotification);
-    
-    setScheduledNotifications(prev => [...prev, timeoutId]);
-  };
-
-  const scheduleWakeUpNotification = () => {
-    if (!wakeUpNotificationEnabled || !notificationsEnabled) return;
-    
-    const now = new Date();
-    const [hours, minutes] = wakeUpReminderTime.split(':').map(Number);
-    
-    // Create notification time for today
-    const notificationTime = new Date();
-    notificationTime.setHours(hours, minutes, 0, 0);
-    
-    // If time has passed today, schedule for tomorrow
-    if (notificationTime <= now) {
-      notificationTime.setDate(notificationTime.getDate() + 1);
-    }
-    
-    const timeUntilNotification = notificationTime.getTime() - now.getTime();
-    
-    const timeoutId = window.setTimeout(() => {
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(`⏰ Good Morning! Time to Wake Up`, {
-          body: `Start your day right! Remember to log your mood and check your medications.`,
-          icon: '/icon-192.svg',
-          tag: 'wakeup-reminder',
-          badge: '/icon-192.svg',
-          requireInteraction: true,
-        });
-
-        // Auto-close notification after 45 seconds
-        setTimeout(() => notification.close(), 45000);
-
-        // Handle notification click
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-      }
-      
-      // Schedule the next wake-up notification for tomorrow
-      scheduleWakeUpNotification();
-    }, timeUntilNotification);
-    
-    setScheduledNotifications(prev => [...prev, timeoutId]);
-  };
-
-  const scheduleMedicationNotification = (medicationName: string, time: string, dosage?: string): number | null => {
-    if (!notificationsEnabled) {
-      console.log(`Notifications disabled, skipping ${medicationName} at ${time}`);
-      return null;
-    }
-    
-    const now = new Date();
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    // Create notification time for today
-    const notificationTime = new Date();
-    notificationTime.setHours(hours, minutes, 0, 0);
-    
-    // If time has passed today, schedule for tomorrow
-    if (notificationTime <= now) {
-      notificationTime.setDate(notificationTime.getDate() + 1);
-    }
-    
-    const timeUntilNotification = notificationTime.getTime() - now.getTime();
-    console.log(`Scheduling ${medicationName} notification in ${Math.round(timeUntilNotification / 1000 / 60)} minutes`);
-    
-    const timeoutId = window.setTimeout(() => {
-      console.log(`Triggering notification for ${medicationName} at ${time}`);
-      
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(`💊 Time for ${medicationName}`, {
-          body: `Take your ${dosage || ''} dose now`,
-          icon: '/icon-192.svg',
-          tag: `medication-${medicationName}-${time}`,
-          badge: '/icon-192.svg',
-          requireInteraction: true,
-        });
-
-        // Auto-close notification after 30 seconds
-        setTimeout(() => notification.close(), 30000);
-
-        // Handle notification click
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-      } else {
-        // Show in-app notification as fallback
-        console.log(`In-app notification: Time for ${medicationName} (${dosage || 'dose'})`);
-      }
-      
-      // Schedule the next notification for tomorrow at the same time
-      setTimeout(() => {
-        const nextNotificationId = scheduleMedicationNotification(medicationName, time, dosage);
-        if (nextNotificationId) {
-          setScheduledNotifications(prev => [...prev.filter(id => id !== timeoutId), nextNotificationId]);
-        }
-      }, 1000);
-    }, timeUntilNotification);
-    
-    return timeoutId;
-  };
+  if (showOnboarding) {
+    return (
+      <MultiStepOnboarding
+        open={showOnboarding}
+        userName={user?.displayName || user?.firstName || "Friend"}
+        onComplete={() => setShowOnboarding(false)}
+      />
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header with User Profile */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center mb-4">
-          <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground">
-            Hello, {user?.displayName || user?.firstName || 'Friend'}! 👋
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* Welcome Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {user?.displayName || user?.firstName || 'there'}! 👋
           </h1>
-          <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="ml-3">
-                <User className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>User Profile</DialogTitle>
-              </DialogHeader>
-              <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit((data) => updateProfileMutation.mutate(data))} className="space-y-4">
-                  <FormField
-                    control={profileForm.control}
-                    name="displayName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Display Name</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            placeholder="What should we call you?"
-                            data-testid="input-display-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex space-x-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsProfileDialogOpen(false)}
-                      className="flex-1"
-                      data-testid="button-cancel-profile"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={updateProfileMutation.isPending}
-                      className="flex-1" 
-                      data-testid="button-save-profile"
-                    >
-                      {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          <p className="text-gray-600 dark:text-gray-300">
+            How are you feeling today?
+          </p>
         </div>
-        <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground text-lg">
-          How are you feeling today?
-        </p>
-      </div>
 
-      {/* Inspirational Quote */}
-      <div className="mb-6 max-w-2xl mx-auto">
-        <InspirationalQuotes />
-      </div>
-
-      {/* Quick Mood Tracker */}
-      <Card className="mb-8 max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Quick Mood Check</CardTitle>
-          {todaysMood ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-center space-x-2">
-                <span className="text-3xl">{moodEmojis[todaysMood.mood as keyof typeof moodEmojis]}</span>
-                <span className="text-lg font-medium">You're feeling {moodLabels[todaysMood.mood as keyof typeof moodLabels].toLowerCase()} today</span>
-              </div>
-              {todaysMood.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 text-center italic">
-                  "{todaysMood.description}"
-                </p>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setSelectedMood(todaysMood.mood);
-                  setMoodDescription(todaysMood.description || '');
-                  setShowMoodDescription(true);
-                }}
-                data-testid="button-edit-mood"
-                className="mx-auto"
-              >
-                Edit Mood
-              </Button>
-            </div>
-          ) : (
-            <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground">Tap an emoji to log your mood</p>
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center space-x-4 mb-4">
-            {Object.entries(moodEmojis).map(([mood, emoji]) => (
-              <Button
-                key={mood}
-                variant={todaysMood?.mood === mood ? "default" : "outline"}
-                size="lg"
-                className="text-3xl p-4 h-auto"
-                onClick={() => {
-                  setSelectedMood(mood);
-                  setShowMoodDescription(true);
-                }}
-                disabled={addMoodMutation.isPending}
-                data-testid={`mood-${mood}`}
-              >
-                {emoji}
-              </Button>
-            ))}
-          </div>
-          
-          {showMoodDescription && selectedMood && (
-            <div className="space-y-3">
-              <Input
-                placeholder="How would you describe this feeling? (optional)"
-                value={moodDescription}
-                onChange={(e) => setMoodDescription(e.target.value)}
-                data-testid="input-mood-description"
-              />
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => {
-                    addMoodMutation.mutate({ 
-                      mood: selectedMood, 
-                      description: moodDescription || undefined 
-                    });
-                    setShowMoodDescription(false);
-                    setSelectedMood(null);
-                    setMoodDescription("");
-                  }}
-                  disabled={addMoodMutation.isPending}
-                  className="flex-1"
-                  data-testid="button-submit-mood"
-                >
-{addMoodMutation.isPending ? "Saving..." : todaysMood ? "Update Mood" : "Save Mood"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowMoodDescription(false);
-                    setSelectedMood(null);
-                    setMoodDescription("");
-                  }}
-                  data-testid="button-cancel-mood"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Mood Trend Mini Chart */}
-      {moodEntries && moodEntries.length > 1 && (
-        <Card className="mb-6 max-w-2xl mx-auto">
+        {/* Mood Tracker */}
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl mr-2">📈</span>
-                Mood Trends
-              </div>
-              <Link href="/mood">
-                <Button size="sm" variant="outline" data-testid="button-view-full-mood-chart">
-                  View Details
-                </Button>
-              </Link>
+            <CardTitle className="flex items-center">
+              <Heart className="w-6 h-6 mr-2 text-red-500" />
+              Today's Mood
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-48">
-              <MoodChart moodEntries={moodEntries.slice(0, 7)} />
-            </div>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Your mood patterns over the last week
-            </p>
+            {todaysMood ? (
+              <div className="text-center py-4">
+                <div className="text-6xl mb-2">{moodEmojis[todaysMood.mood as keyof typeof moodEmojis]}</div>
+                <p className="text-lg font-medium mb-2">{moodLabels[todaysMood.mood as keyof typeof moodLabels]}</p>
+                {todaysMood.description && (
+                  <p className="text-sm text-muted-foreground mb-4">"{todaysMood.description}"</p>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedMood(todaysMood.mood)}
+                  data-testid="button-update-mood"
+                >
+                  Update Mood
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-5 gap-3">
+                {Object.entries(moodEmojis).map(([mood, emoji]) => (
+                  <button
+                    key={mood}
+                    onClick={() => setSelectedMood(mood)}
+                    className="p-4 text-4xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    data-testid={`button-mood-${mood}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedMood && (
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="text-center mb-4">
+                  <div className="text-4xl mb-2">{moodEmojis[selectedMood as keyof typeof moodEmojis]}</div>
+                  <h3 className="text-lg font-medium">{moodLabels[selectedMood as keyof typeof moodLabels]}</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      How are you feeling? (Optional)
+                    </label>
+                    <Input
+                      value={moodDescription}
+                      onChange={(e) => setMoodDescription(e.target.value)}
+                      placeholder="Describe your mood in a few words..."
+                      data-testid="input-mood-description"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={() => onMoodSubmit(selectedMood, moodDescription)}
+                      disabled={addMoodMutation.isPending}
+                      className="flex-1"
+                      data-testid="button-save-mood"
+                    >
+                      {addMoodMutation.isPending ? "Saving..." : "Save Mood"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedMood(null);
+                        setMoodDescription("");
+                      }}
+                      className="flex-1"
+                      data-testid="button-cancel-mood"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Sleep Quick Logger */}
-      <Card className="mb-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center">
-              <span className="text-2xl mr-2">😴</span>
+        {/* Sleep Tracker */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Moon className="w-6 h-6 mr-2 text-blue-500" />
               Sleep Tracker
-            </div>
-            {!notificationsEnabled && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={setupNotifications}
-                className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
-                data-testid="button-enable-sleep-notifications"
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Enable Reminders
-              </Button>
-            )}
-          </CardTitle>
-          {todaysSleep ? (
-            <div className="text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-              <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
-                ✅ Sleep logged: {todaysSleep.hoursSlept}h
-              </div>
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  // Reset sleep form to edit mode with current data
-                  const bedtime = new Date(todaysSleep.bedtime);
-                  const wakeTime = new Date(todaysSleep.wakeTime);
-                  setSleepForm({
-                    bedtime: `${bedtime.getHours().toString().padStart(2, '0')}:${bedtime.getMinutes().toString().padStart(2, '0')}`,
-                    wakeTime: `${wakeTime.getHours().toString().padStart(2, '0')}:${wakeTime.getMinutes().toString().padStart(2, '0')}`
-                  });
-                }}
-                data-testid="button-edit-sleep"
-              >
-                Edit Sleep
-              </Button>
-            </div>
-          ) : null}
-          
-
-
-          {/* Sleep Notification Settings */}
-          {notificationsEnabled && (
-            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-                  <Bell className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    Sleep notifications are active
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={testNotification}
-                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  data-testid="button-test-notification"
-                >
-                  <Bell className="w-3 h-3 mr-1" />
-                  Test
-                </Button>
-              </div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="bedtime-notifications"
-                    checked={bedtimeNotificationEnabled}
-                    onChange={(e) => setBedtimeNotificationEnabled(e.target.checked)}
-                    className="rounded"
-                    data-testid="checkbox-bedtime-notifications"
-                  />
-                  <label htmlFor="bedtime-notifications" className="text-sm font-medium">
-                    🛏️ Bedtime Reminders
-                  </label>
-                </div>
-                {bedtimeNotificationEnabled && (
-                  <Input
-                    type="time"
-                    value={bedtimeReminderTime}
-                    onChange={(e) => setBedtimeReminderTime(e.target.value)}
-                    className="w-24 h-8 text-sm"
-                    data-testid="input-bedtime-reminder-time"
-                  />
-                )}
-              </div>
-              {bedtimeNotificationEnabled && (
-                <p className="text-xs text-muted-foreground">
-                  We'll remind you to wind down for bed at {bedtimeReminderTime}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {todaysSleep ? (
+              <div className="text-center py-4">
+                <div className="text-4xl mb-2">😴</div>
+                <p className="text-lg font-medium mb-2">
+                  {todaysSleep.hoursSlept} hours of sleep
                 </p>
-              )}
-              
-              {/* Wake-up Notification Settings */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="wakeup-notifications"
-                    checked={wakeUpNotificationEnabled}
-                    onChange={(e) => setWakeUpNotificationEnabled(e.target.checked)}
-                    className="rounded"
-                    data-testid="checkbox-wakeup-notifications"
-                  />
-                  <label htmlFor="wakeup-notifications" className="text-sm font-medium">
-                    ⏰ Wake-up Reminders
-                  </label>
-                </div>
-                {wakeUpNotificationEnabled && (
-                  <Input
-                    type="time"
-                    value={wakeUpReminderTime}
-                    onChange={(e) => setWakeUpReminderTime(e.target.value)}
-                    className="w-24 h-8 text-sm"
-                    data-testid="input-wakeup-reminder-time"
-                  />
-                )}
-              </div>
-              {wakeUpNotificationEnabled && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  We'll wake you up at {wakeUpReminderTime} to start your day right
+                <p className="text-sm text-muted-foreground mb-4">
+                  Bedtime: {new Date(todaysSleep.bedtime).toLocaleTimeString()} • 
+                  Wake: {new Date(todaysSleep.wakeTime).toLocaleTimeString()}
                 </p>
-              )}
-            </div>
-          )}
-
-          {(!todaysSleep || sleepForm.bedtime || sleepForm.wakeTime) && (
-            <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium flex items-center mb-2">
-                    🛏️ Bedtime
-                  </label>
-                  <Input
-                    type="time"
-                    value={sleepForm.bedtime}
-                    onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
-                    data-testid="input-bedtime"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium flex items-center mb-2">
-                    ⏰ Wake Up Time
-                  </label>
-                  <Input
-                    type="time"
-                    value={sleepForm.wakeTime}
-                    onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
-                    data-testid="input-waketime"
-                  />
-                </div>
-              </div>
-
-              
-              <div className="flex space-x-2">
                 <Button 
-                  onClick={() => addSleepMutation.mutate(sleepForm)}
-                  disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
-                  data-testid="button-log-sleep"
-                  className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSleepForm({
+                      bedtime: new Date(todaysSleep.bedtime).toTimeString().slice(0, 5),
+                      wakeTime: new Date(todaysSleep.wakeTime).toTimeString().slice(0, 5)
+                    });
+                  }}
+                  data-testid="button-update-sleep"
                 >
-                  {addSleepMutation.isPending ? "💤 Saving..." : todaysSleep ? "💤 Update Sleep" : "💤 Log Sleep"}
+                  Update Sleep
                 </Button>
-                {todaysSleep && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSleepForm({ bedtime: '', wakeTime: '' });
-                    }}
-                    data-testid="button-cancel-sleep-edit"
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      🛏️ Bedtime
+                    </label>
+                    <Input
+                      type="time"
+                      value={sleepForm.bedtime}
+                      onChange={(e) => setSleepForm({...sleepForm, bedtime: e.target.value})}
+                      data-testid="input-bedtime"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center mb-2">
+                      ⏰ Wake Up Time
+                    </label>
+                    <Input
+                      type="time"
+                      value={sleepForm.wakeTime}
+                      onChange={(e) => setSleepForm({...sleepForm, wakeTime: e.target.value})}
+                      data-testid="input-waketime"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => addSleepMutation.mutate(sleepForm)}
+                    disabled={!sleepForm.bedtime || !sleepForm.wakeTime || addSleepMutation.isPending}
+                    data-testid="button-log-sleep"
+                    className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
                   >
-                    Cancel
+                    {addSleepMutation.isPending ? "💤 Saving..." : todaysSleep ? "💤 Update Sleep" : "💤 Log Sleep"}
                   </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </CardHeader>
-      </Card>
-
-
-
-      {/* Medication Tracker */}
-      <Card className="mb-6 max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center">
-              <span className="text-2xl mr-2">💊</span>
-              Today's Medications
-            </div>
-            <div className="flex items-center space-x-2">
-              {notificationsEnabled ? (
-                <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-                  <Bell className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  <span className="text-sm text-green-700 dark:text-green-300 font-medium">
-                    Reminders Active
-                  </span>
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={setupNotifications}
-                  className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
-                  data-testid="button-enable-med-notifications"
-                >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Enable Reminders
-                </Button>
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          {notificationsEnabled && medications.length > 0 && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-              <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-                <Bell className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  Medication reminders are active for {medications.length} medication{medications.length > 1 ? 's' : ''}
-                </span>
-              </div>
-              <p className="text-xs text-green-600 dark:text-green-300 mt-1">
-                You'll receive notifications at your scheduled times
-              </p>
-            </div>
-          )}
-
-          {medications.length > 0 ? (
-            <div className="space-y-3 text-left">
-              {medications.map((med) => (
-                <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="font-medium">{med.name}{med.dosage ? ` - ${med.dosage}` : ''}</div>
-                      {notificationsEnabled && (
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Bell className="w-3 h-3 text-blue-500" />
-                          <span className="text-xs text-blue-600 dark:text-blue-400">
-                            Reminders active
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                  {todaysSleep && (
                     <Button
-                      size="sm"
                       variant="outline"
                       onClick={() => {
-                        // Pre-populate form with existing medication data
-                        medForm.reset({
-                          name: med.name,
-                          dosage: med.dosage || undefined,
-                          frequency: med.frequency,
-                          times: med.times || []
-                        });
-                        setSelectedFrequency(med.frequency);
-                        setIsMedDialogOpen(true);
+                        setSleepForm({ bedtime: '', wakeTime: '' });
                       }}
-                      data-testid={`button-edit-med-${med.id}`}
+                      data-testid="button-cancel-sleep-edit"
                     >
-                      Edit
+                      Cancel
                     </Button>
-                  </div>
-                  
-                  <Form {...medForm}>
-                    <form onSubmit={medForm.handleSubmit(onMedSubmit)} className="space-y-4">
-                      <FormField
-                        control={medForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Medication Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Sertraline" {...field} data-testid="input-medication-name" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={medForm.control}
-                        name="dosage"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Dosage (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., 50mg (optional)" {...field} data-testid="input-medication-dosage" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={medForm.control}
-                        name="frequency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Frequency</FormLabel>
-                            <Select 
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                handleFrequencyChange(value);
-                              }} 
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger data-testid="select-medication-frequency">
-                                  <SelectValue placeholder="How often?" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {frequencies.map((freq) => (
-                                  <SelectItem key={freq.value} value={freq.value}>
-                                    {freq.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {selectedFrequency && (
-                        <div>
-                          <FormLabel>Times</FormLabel>
-                          <div className="space-y-2 mt-2">
-                            {medForm.watch("times")?.map((time, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <Input
-                                  type="time"
-                                  value={time || ""}
-                                  onChange={(e) => {
-                                    const times = [...(medForm.getValues("times") || [])];
-                                    times[index] = e.target.value;
-                                    medForm.setValue("times", times);
-                                  }}
-                                  data-testid={`input-medication-time-${index}`}
-                                  className="flex-1"
-                                />
-                                <span className="text-sm text-muted-foreground min-w-12">
-                                  {parseInt(time?.split(':')[0] || '0') < 12 ? 'AM' : 'PM'}
-                                </span>
-                              </div>
-                            )) || []}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex space-x-3 pt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsMedDialogOpen(false);
-                            medForm.reset({
-                              name: "",
-                              dosage: "",
-                              frequency: "",
-                              times: [],
-                            });
-                            setSelectedFrequency("");
-                          }}
-                          className="flex-1"
-                          data-testid="button-cancel-medication"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={addMedicationMutation.isPending}
-                          className="flex-1"
-                          data-testid="button-save-medication"
-                        >
-{addMedicationMutation.isPending ? "Saving..." : "Save Medication"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-              
-              {medications.length > 0 && !notificationsEnabled && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={setupNotifications}
-                  className="flex items-center space-x-1"
-                  data-testid="button-enable-notifications"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span>Enable Reminders</span>
-                </Button>
-              )}
-              {notificationsEnabled && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-green-600 dark:text-green-400">✓ Reminders On</span>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          {notificationsEnabled && medications.length > 0 && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-              <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-                <Bell className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  Medication reminders are active for {medications.length} medication{medications.length > 1 ? 's' : ''}
-                </span>
               </div>
-              <p className="text-xs text-green-600 dark:text-green-300 mt-1">
-                You'll receive notifications at your scheduled times
-              </p>
-            </div>
-          )}
+            )}
+          </CardContent>
+        </Card>
 
-          {medications.length > 0 ? (
-            <div className="space-y-3 text-left">
-              {medications.map((med) => (
-                <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="font-medium">{med.name}{med.dosage ? ` - ${med.dosage}` : ''}</div>
-                      {notificationsEnabled && (
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Bell className="w-3 h-3 text-blue-500" />
-                          <span className="text-xs text-blue-600 dark:text-blue-400">
-                            Reminders active
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        // Pre-populate form with existing medication data
-                        medForm.reset({
-                          name: med.name,
-                          dosage: med.dosage || undefined,
-                          frequency: med.frequency,
-                          times: med.times || []
-                        });
-                        setSelectedFrequency(med.frequency);
-                        setIsMedDialogOpen(true);
-                      }}
-                      data-testid={`button-edit-med-${med.id}`}
-                    >
-                      Edit
-                    </Button>
-                  </div>
-                  
-                  {/* Visual pill representation with individual tracking */}
-                  <div className="space-y-4 mb-4">
-                    {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => {
-                      const time = med.times?.[pillIndex] || 'N/A';
-                      const hour = parseInt(time.split(':')[0]);
-                      const ampm = hour < 12 ? 'AM' : 'PM';
-                      const displayTime = `${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}:${time.split(':')[1]} ${ampm}`;
-                      const isThisPillTaken = medicationTaken.some(record => 
-                        record.medicationId === med.id &&
-                        record.scheduledTime === time &&
-                        new Date(record.takenAt).toDateString() === new Date().toDateString()
-                      );
-                      
-                      return (
-                        <div key={pillIndex} className={`p-4 rounded-lg border-2 ${isThisPillTaken ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200'}`}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-16 h-8 rounded-full border-2 flex items-center justify-center text-lg ${
-                                isThisPillTaken ? 'bg-green-200 border-green-400' : 'bg-white border-gray-300'
-                              }`}>
-                                💊
-                              </div>
-                              <div>
-                                <div className="font-bold text-lg">{displayTime}</div>
-                                <div className="text-sm text-gray-500">{ampm} Dose</div>
-                              </div>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 hover:bg-green-200 dark:hover:bg-green-800 flex flex-col items-center"
-                                onClick={() => {
-                                  markMedicationTakenMutation.mutate({
-                                    medicationId: med.id,
-                                    scheduledTime: time
-                                  });
-                                }}
-                                disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
-                                data-testid={`med-taken-${med.id}-${pillIndex}`}
-                              >
-                                <span className="text-2xl">👍</span>
-                                <span className="text-xs">Taken</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="p-2 hover:bg-red-200 dark:hover:bg-red-800 flex flex-col items-center"
-                                onClick={() => {
-                                  toast({
-                                    title: "Medication skipped",
-                                    description: `${displayTime} dose marked as skipped`,
-                                    variant: "destructive",
-                                  });
-                                }}
-                                disabled={isThisPillTaken}
-                                data-testid={`med-skip-${med.id}-${pillIndex}`}
-                              >
-                                <span className="text-2xl">👎</span>
-                                <span className="text-xs">Skip</span>
-                              </Button>
-                            </div>
-                          </div>
-                          {isThisPillTaken && (
-                            <div className="mt-2 text-green-600 font-medium text-sm">
-                              ✅ TAKEN
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="text-center mt-4">
-                    <div className="text-sm text-gray-500">
-                      {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
-                    </div>
-                    <div className="flex items-center justify-center mt-2 space-x-2">
-                      <Bell className={`w-4 h-4 ${med.notificationsEnabled ? 'text-blue-500' : 'text-gray-400'}`} />
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={med.notificationsEnabled ?? true}
-                          onChange={(e) => toggleMedicationNotifications(med.id, e.target.checked)}
-                          className="sr-only"
-                        />
-                        <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          med.notificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                        }`}>
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            med.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
-                        </div>
-                      </label>
-                      <span className="text-xs text-gray-500">
-                        {med.notificationsEnabled ? 'Reminders on' : 'Reminders off'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Pill className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No medications added yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Add your first medication to start tracking your daily doses
-              </p>
-              <Button onClick={() => setIsMedDialogOpen(true)} data-testid="button-add-first-medication">
+        {/* Medication Tracker */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Pill className="w-6 h-6 mr-2 text-green-500" />
+                Today's Medications
+              </div>
+              <Button
+                onClick={() => setIsMedDialogOpen(true)}
+                size="sm"
+                data-testid="button-add-medication"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Medication
               </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {medications.length > 0 ? (
+              <div className="space-y-4">
+                {medications.map((med) => (
+                  <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="font-medium">{med.name}</div>
+                        {med.dosage && (
+                          <div className="text-sm text-muted-foreground">{med.dosage}</div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          medForm.reset({
+                            name: med.name,
+                            dosage: med.dosage || "",
+                            frequency: med.frequency,
+                            times: med.times || []
+                          });
+                          setSelectedFrequency(med.frequency);
+                          setIsMedDialogOpen(true);
+                        }}
+                        data-testid={`button-edit-med-${med.id}`}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-center space-x-4">
+                      {med.times?.map((time, timeIndex) => {
+                        const wasTaken = medicationTaken.some(mt => 
+                          mt.medicationId === med.id && 
+                          mt.scheduledTime === time &&
+                          new Date(mt.takenAt).toDateString() === new Date().toDateString()
+                        );
+                        
+                        return (
+                          <div key={timeIndex} className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">{time}</div>
+                            <div className={`text-4xl transition-all duration-200 ${wasTaken ? 'filter grayscale' : ''}`}>
+                              💊
+                            </div>
+                            <div className="mt-2 space-x-2">
+                              <Button
+                                size="sm"
+                                variant={wasTaken ? "secondary" : "default"}
+                                onClick={() => markMedicationTaken(med.id, time)}
+                                disabled={wasTaken || markMedicationTakenMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
+                                data-testid={`button-taken-${med.id}-${timeIndex}`}
+                              >
+                                {wasTaken ? "✓ Taken" : "👍 Taken"}
+                              </Button>
+                              {!wasTaken && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => skipMedication(med.id, time)}
+                                  className="text-xs px-2 py-1"
+                                  data-testid={`button-skip-${med.id}-${timeIndex}`}
+                                >
+                                  👎 Skip
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }) || []}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Pill className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No medications added yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Add your first medication to start tracking your daily doses
+                </p>
+                <Button onClick={() => setIsMedDialogOpen(true)} data-testid="button-add-first-medication">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Medication
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Link href="/mood">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                <h3 className="font-medium">Mood</h3>
+                <p className="text-sm text-muted-foreground">Track feelings</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="/sleep">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Moon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                <h3 className="font-medium">Sleep</h3>
+                <p className="text-sm text-muted-foreground">Log rest</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="/medication">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Pill className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                <h3 className="font-medium">Medication</h3>
+                <p className="text-sm text-muted-foreground">Manage doses</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="/journal">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <PenTool className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                <h3 className="font-medium">Journal</h3>
+                <p className="text-sm text-muted-foreground">Write thoughts</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Mental Health Tips */}
+        <MentalHealthTips />
+
+        {/* Inspirational Quotes */}
+        <InspirationalQuotes />
+
+        {/* Crisis Support */}
+        <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-3">
+            🆘 Need immediate support?
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <span className="text-red-600 dark:text-red-300">
+              <strong>988</strong> - Suicide & Crisis Lifeline
+            </span>
+            <span className="text-red-600 dark:text-red-300">
+              <strong>Text HOME to 741741</strong> - Crisis Text Line
+            </span>
+            <span className="text-red-600 dark:text-red-300">
+              <a 
+                href="https://findahelpline.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:no-underline font-medium"
+              >
+                International Help
+              </a>
+            </span>
+          </div>
+          <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+            If you're having thoughts of self-harm, please reach out immediately. You are not alone.
+          </p>
+        </div>
+      </div>
 
       {/* Medication Dialog */}
       <Dialog open={isMedDialogOpen} onOpenChange={setIsMedDialogOpen}>
@@ -1684,7 +866,7 @@ export default function Home() {
                   <FormItem>
                     <FormLabel>Dosage (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 50mg (optional)" {...field} data-testid="input-medication-dosage" />
+                      <Input placeholder="e.g., 50mg" {...field} data-testid="input-medication-dosage" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1705,9 +887,11 @@ export default function Home() {
                       value={field.value}
                       data-testid="select-medication-frequency"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select frequency" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         <SelectItem value="daily">Once daily</SelectItem>
                         <SelectItem value="twice-daily">Twice daily</SelectItem>
@@ -1751,12 +935,7 @@ export default function Home() {
                   variant="outline"
                   onClick={() => {
                     setIsMedDialogOpen(false);
-                    medForm.reset({
-                      name: "",
-                      dosage: "",
-                      frequency: "",
-                      times: [],
-                    });
+                    medForm.reset();
                     setSelectedFrequency("");
                   }}
                   className="flex-1"
@@ -1778,302 +957,11 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* Exercise & Weight Tracker - Combined section under medications */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="w-6 h-6 mr-2 text-green-600" />
-            Exercise & Weight Tracker
-          </CardTitle>
-          
-          {/* Exercise Status Display */}
-          {getTodaysExercise() && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">
-                    {getTodaysExercise()?.exercised ? "💪" : "😴"}
-                  </span>
-                  <div>
-                    <p className="font-medium text-green-900 dark:text-green-100">
-                      {getTodaysExercise()?.exercised ? "Great job! You exercised today" : "No exercise logged today"}
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-300">
-                      Logged at {new Date(getTodaysExercise()!.createdAt).toLocaleTimeString()}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const current = getTodaysExercise();
-                    if (current) {
-                      addExerciseMutation.mutate({ 
-                        exercised: !current.exercised,
-                        notes: current.notes || undefined
-                      });
-                    }
-                  }}
-                  data-testid="button-toggle-exercise"
-                >
-                  {getTodaysExercise()?.exercised ? "Mark as Not Done" : "Mark as Done"}
-                </Button>
-              </div>
-            </div>
-          )}
-          
-          {/* Exercise Quick Log Buttons */}
-          {!getTodaysExercise() && (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Did you exercise today? Physical activity is great for mental health!
-              </p>
-              
-              <div className="flex space-x-3">
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: true })}
-                  disabled={addExerciseMutation.isPending}
-                  variant="outline"
-                  className="flex-1 hover:bg-green-50 hover:border-green-200 hover:text-green-800 dark:hover:bg-green-900/20"
-                  data-testid="button-exercise-yes"
-                >
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xl mr-2">👍</span>
-                    <span className="font-medium">Yes!</span>
-                  </div>
-                </Button>
-                
-                <Button
-                  onClick={() => addExerciseMutation.mutate({ exercised: false })}
-                  disabled={addExerciseMutation.isPending}
-                  variant="outline"
-                  className="flex-1"
-                  data-testid="button-exercise-no"
-                >
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xl mr-2">👎</span>
-                    <span>Not Today</span>
-                  </div>
-                </Button>
-              </div>
-              
-              {addExerciseMutation.isPending && (
-                <p className="text-sm text-center text-muted-foreground">
-                  Logging exercise...
-                </p>
-              )}
-            </div>
-          )}
-          
-          {/* Weight Tracking Section */}
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Weight className="w-5 h-5 mr-2 text-blue-600" />
-                <span className="font-medium">Weight Tracking</span>
-              </div>
-              {getTodaysWeight() ? (
-                <div className="text-center">
-                  <div className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                    Today: {getTodaysWeight()!.weight} {getTodaysWeight()?.unit}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const todaysWeight = getTodaysWeight();
-                      if (todaysWeight) {
-                        setWeightForm({
-                          weight: todaysWeight.weight.toString(),
-                          unit: todaysWeight.unit,
-                          notes: todaysWeight.notes || ""
-                        });
-                      }
-                    }}
-                    className="mt-1"
-                    data-testid="button-edit-weight"
-                  >
-                    Edit
-                  </Button>
-                </div>
-              ) : weightEntries.length > 0 && weightEntries[0] && (
-                <span className="text-sm text-muted-foreground">
-                  Last: {weightEntries[0].weight} {weightEntries[0].unit} 
-                  ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
-                </span>
-              )}
-            </div>
-            
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  step="0.1"
-                  placeholder="Enter weight"
-                  value={weightForm.weight}
-                  onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
-                  data-testid="input-weight"
-                />
-              </div>
-              <Select
-                value={weightForm.unit}
-                onValueChange={(value) => setWeightForm({...weightForm, unit: value})}
-              >
-                <SelectTrigger className="w-20" data-testid="select-weight-unit">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lbs">lbs</SelectItem>
-                  <SelectItem value="kg">kg</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={() => {
-                  if (weightForm.weight) {
-                    const todaysWeight = getTodaysWeight();
-                    if (todaysWeight) {
-                      updateWeightMutation.mutate({
-                        id: todaysWeight.id,
-                        weight: parseFloat(weightForm.weight),
-                        unit: weightForm.unit,
-                        notes: weightForm.notes || undefined
-                      });
-                    } else {
-                      addWeightMutation.mutate({
-                        weight: parseFloat(weightForm.weight),
-                        unit: weightForm.unit,
-                        notes: weightForm.notes || undefined
-                      });
-                    }
-                    setWeightForm({ weight: "", unit: "lbs", notes: "" });
-                  }
-                }}
-                disabled={!weightForm.weight || addWeightMutation.isPending || updateWeightMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="button-log-weight"
-              >
-                {(addWeightMutation.isPending || updateWeightMutation.isPending) ? 
-                  "Saving..." : 
-                  getTodaysWeight() && weightForm.weight ? "Update Weight" : "Log Weight"}
-              </Button>
-            </div>
-            {weightForm.notes !== undefined && (
-              <Input
-                placeholder="Notes (optional)"
-                value={weightForm.notes}
-                onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
-                data-testid="input-weight-notes"
-                className="mt-2"
-              />
-            )}
-          </div>
-          
-
-        </CardHeader>
-      </Card>
-
-      {/* Daily Mental Health Tips from MoodBuddy */}
-      <div className="mb-8">
-        <MentalHealthTips />
-      </div>
-
-
-
-
-
-
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="text-2xl mr-2">📊</span>
-            Your Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {moodEntries.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Mood entries
-              </div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {sleepEntries.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Sleep logs
-              </div>
-            </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {medications.length}
-              </div>
-              <div className="text-sm text-moodbuddy-neutral-600 dark:text-muted-foreground">
-                Active medications
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-
-
-
-
-      {/* Bottom spacing for mobile nav */}
-      <div className="h-20 md:h-0"></div>
-
-      {/* Multi-step onboarding experience */}
-      {showOnboarding && (
-        <MultiStepOnboarding 
-          open={showOnboarding} 
-          onComplete={() => setShowOnboarding(false)}
-          userName={user?.firstName || user?.displayName || ""}
-        />
-      )}
-
-      {/* Emergency Hotline Footer */}
-      <div className="mt-8 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800/30">
-        <div className="text-center">
-          <h4 className="text-red-700 dark:text-red-400 font-semibold mb-2 text-sm">Crisis Support Available 24/7</h4>
-          <div className="flex flex-wrap justify-center gap-4 text-xs">
-            <span className="text-red-600 dark:text-red-300">
-              <strong>Crisis:</strong>{" "}
-              <a href="tel:988" className="underline hover:no-underline font-medium">
-                Call 988
-              </a>
-            </span>
-            <span className="text-red-600 dark:text-red-300">
-              <strong>Text:</strong> HOME to 741741
-            </span>
-            <span className="text-red-600 dark:text-red-300">
-              <a 
-                href="https://findahelpline.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline hover:no-underline font-medium"
-              >
-                International Help
-              </a>
-            </span>
-          </div>
-          <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-            If you're having thoughts of self-harm, please reach out immediately. You are not alone.
-          </p>
-        </div>
-      </div>
       {/* Achievement Toast Handler */}
       {pendingAchievements.length > 0 && (
         <AchievementToast 
           achievements={pendingAchievements} 
           onClose={() => {
-            // Clear pending achievements and any pending timeout
             if (achievementTimeoutRef.current) {
               clearTimeout(achievementTimeoutRef.current);
               achievementTimeoutRef.current = null;
