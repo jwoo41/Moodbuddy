@@ -21,6 +21,8 @@ import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
 import AdaptiveSoundscape from "@/components/adaptive-soundscape";
+import InspirationalQuotes from "@/components/inspirational-quotes";
+import BackgroundMusic from "@/components/background-music";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -945,6 +947,11 @@ export default function Home() {
         <p className="text-moodbuddy-neutral-500 dark:text-muted-foreground text-lg">
           How are you feeling today?
         </p>
+      </div>
+
+      {/* Inspirational Quote */}
+      <div className="mb-6 max-w-2xl mx-auto">
+        <InspirationalQuotes />
       </div>
 
       {/* Quick Mood Tracker */}
@@ -1895,6 +1902,9 @@ export default function Home() {
       </Card>
 
 
+
+      {/* Background Music */}
+      <BackgroundMusic autoPlay={true} />
 
       {/* Bottom spacing for mobile nav */}
       <div className="h-20 md:h-0"></div>
