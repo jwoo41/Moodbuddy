@@ -507,6 +507,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if OpenAI API key is available
+  app.get('/api/check-openai', (req, res) => {
+    const hasApiKey = !!process.env.OPENAI_API_KEY;
+    if (hasApiKey) {
+      res.json({ available: true });
+    } else {
+      res.status(404).json({ available: false });
+    }
+  });
+
+  // ChatGPT API endpoint
+  app.post('/api/chat', async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      const { message, context } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // Import OpenAI dynamically
+      const { default: OpenAI } = await import('openai');
+      
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: context || "You are MoodBuddy, a compassionate mental health companion. Provide supportive, empathetic responses focused on mental wellness, coping strategies, and emotional support. Keep responses concise but caring."
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7,
+      });
+
+      const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response right now. Please try again.";
+      
+      res.json({ response });
+    } catch (error) {
+      console.error('OpenAI API error:', error);
+      res.status(500).json({ error: 'Failed to generate response' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
