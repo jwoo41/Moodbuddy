@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Heart, Moon, Pill } from "lucide-react";
 import ConversationInterface from "@/components/conversation/conversation-interface";
+import SmartChat from "@/components/smart-chat";
 
 const conversationTopics = [
   {
@@ -44,125 +45,25 @@ const conversationTopics = [
 ];
 
 export default function Chat() {
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [conversationHistory, setConversationHistory] = useState<string[]>([]);
-
-  const handleTopicSelect = (topicId: string) => {
-    setSelectedTopic(topicId);
-  };
-
-  const handleBackToTopics = () => {
-    setSelectedTopic(null);
-  };
-
-  const handleMessageSend = (message: string) => {
-    setConversationHistory(prev => [...prev, message]);
-  };
-
-  const getTopicDetails = (topicId: string) => {
-    return conversationTopics.find(topic => topic.id === topicId);
-  };
-
-  if (selectedTopic) {
-    const topic = getTopicDetails(selectedTopic);
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Conversation</h1>
-            <p className="text-muted-foreground">
-              {topic?.description || 'Having a conversation about your wellbeing'}
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleBackToTopics} data-testid="button-back-to-topics">
-            Back to Topics
-          </Button>
-        </div>
-
-        <ConversationInterface
-          title={topic?.title || 'MindFlow Companion'}
-          placeholder={`Let's talk about ${topic?.title.toLowerCase()}. How are you feeling?`}
-          onMessageSend={handleMessageSend}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Conversation</h1>
-        <p className="text-muted-foreground">
-          Choose a topic to start a supportive conversation with your AI companion
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-moodbuddy-neutral-900 dark:text-foreground mb-2">
+          MoodBuddy Chat
+        </h1>
+        <p className="text-moodbuddy-neutral-600 dark:text-muted-foreground">
+          Have a conversation with your mental health companion
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {conversationTopics.map((topic) => {
-          const Icon = topic.icon;
-          return (
-            <Card 
-              key={topic.id} 
-              className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105"
-              onClick={() => handleTopicSelect(topic.id)}
-              data-testid={`card-topic-${topic.id}`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <Icon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                  <Badge className={topic.color} variant="secondary">
-                    New
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardTitle className="text-lg mb-2">{topic.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {topic.description}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <SmartChat />
+      
+      <div className="text-center text-sm text-muted-foreground">
+        <p>
+          For the best chat experience, add your OpenAI API key in the Secrets tab. 
+          Without it, you'll get helpful but basic responses.
+        </p>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            Quick Start Conversation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">
-            Or jump right into a conversation without choosing a specific topic.
-          </p>
-          <Button 
-            onClick={() => handleTopicSelect('general')}
-            className="w-full"
-            data-testid="button-quick-start"
-          >
-            Start Talking
-          </Button>
-        </CardContent>
-      </Card>
-
-      {conversationHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Conversations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {conversationHistory.slice(-3).map((message, index) => (
-                <div key={index} className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
-                  "{message.substring(0, 80)}{message.length > 80 ? '...' : ''}"
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
