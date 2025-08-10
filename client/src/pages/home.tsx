@@ -21,6 +21,7 @@ import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 import MentalHealthTips from "@/components/mental-health-tips";
 import InspirationalQuotes from "@/components/inspirational-quotes";
+import MedicationCard from "@/components/medication/medication-card";
 
 const moodEmojis = {
   "very-sad": "😢",
@@ -463,17 +464,6 @@ export default function Home() {
   });
 
   // Helper functions for actions
-  const markMedicationTaken = (medicationId: string, scheduledTime: string) => {
-    markMedicationTakenMutation.mutate({ medicationId, scheduledTime });
-  };
-
-  const skipMedication = (medicationId: string, scheduledTime: string) => {
-    // For skip functionality, we might want to track this differently
-    toast({
-      title: "Medication skipped",
-      description: "Dose has been skipped for this time.",
-    });
-  };
 
   const handleFrequencyChange = (value: string) => {
     setSelectedFrequency(value);
@@ -756,113 +746,76 @@ export default function Home() {
         </Card>
 
         {/* Medication Tracker */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Pill className="w-6 h-6 mr-2 text-green-500" />
-                Today's Medications
-              </div>
-              <Button
-                onClick={() => setIsMedDialogOpen(true)}
-                size="sm"
-                data-testid="button-add-medication"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Medication
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {medications.length > 0 ? (
-              <div className="space-y-4">
-                {medications.map((med) => (
-                  <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="font-medium">{med.name}</div>
-                        {med.dosage && (
-                          <div className="text-sm text-muted-foreground">{med.dosage}</div>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          medForm.reset({
-                            name: med.name,
-                            dosage: med.dosage || "",
-                            frequency: med.frequency,
-                            times: med.times || []
-                          });
-                          setSelectedFrequency(med.frequency);
-                          setIsMedDialogOpen(true);
-                        }}
-                        data-testid={`button-edit-med-${med.id}`}
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-center space-x-4">
-                      {med.times?.map((time, timeIndex) => {
-                        const wasTaken = medicationTaken.some(mt => 
-                          mt.medicationId === med.id && 
-                          mt.scheduledTime === time &&
-                          new Date(mt.takenAt).toDateString() === new Date().toDateString()
-                        );
-                        
-                        return (
-                          <div key={timeIndex} className="text-center">
-                            <div className="text-xs text-gray-500 mb-1">{time}</div>
-                            <div className={`text-4xl transition-all duration-200 ${wasTaken ? 'filter grayscale' : ''}`}>
-                              💊
-                            </div>
-                            <div className="mt-2 space-x-2">
-                              <Button
-                                size="sm"
-                                variant={wasTaken ? "secondary" : "default"}
-                                onClick={() => markMedicationTaken(med.id, time)}
-                                disabled={wasTaken || markMedicationTakenMutation.isPending}
-                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
-                                data-testid={`button-taken-${med.id}-${timeIndex}`}
-                              >
-                                {wasTaken ? "✓ Taken" : "👍 Taken"}
-                              </Button>
-                              {!wasTaken && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => skipMedication(med.id, time)}
-                                  className="text-xs px-2 py-1"
-                                  data-testid={`button-skip-${med.id}-${timeIndex}`}
-                                >
-                                  👎 Skip
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      }) || []}
-                    </div>
+        <div className="mb-6">
+          {medications.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Pill className="w-6 h-6 mr-2 text-green-500" />
+                  <span className="text-lg font-semibold">Today's Medications</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-green-600 dark:text-green-400 text-sm flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Reminders Active
                   </div>
-                ))}
+                  <Button
+                    onClick={() => setIsMedDialogOpen(true)}
+                    size="sm"
+                    data-testid="button-add-medication"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Medication
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Pill className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No medications added yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Add your first medication to start tracking your daily doses
-                </p>
-                <Button onClick={() => setIsMedDialogOpen(true)} data-testid="button-add-first-medication">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Medication
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              
+              {medications.map((med) => (
+                <MedicationCard 
+                  key={med.id} 
+                  medication={med} 
+                  takenRecords={medicationTaken}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Pill className="w-6 h-6 mr-2 text-green-500" />
+                    Today's Medications
+                  </div>
+                  <Button
+                    onClick={() => setIsMedDialogOpen(true)}
+                    size="sm"
+                    data-testid="button-add-medication"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Medication
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">💊</div>
+                  <h3 className="text-lg font-medium mb-2">No medications added yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Add your first medication to start tracking your daily doses
+                  </p>
+                  <Button 
+                    onClick={() => setIsMedDialogOpen(true)} 
+                    data-testid="button-add-first-medication"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Your First Medication
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         {/* Exercise Tracker */}
         <Card className="mb-6">
