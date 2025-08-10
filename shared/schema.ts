@@ -135,41 +135,7 @@ export const achievements = pgTable("achievements", {
   earnedAt: timestamp("earned_at").defaultNow().notNull(),
 });
 
-// Chat conversations and memory
-export const chatConversations = pgTable("chat_conversations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  title: text("title"), // Optional conversation title
-  summary: text("summary"), // AI-generated summary of conversation
-  sentiment: varchar("sentiment"), // overall sentiment: positive, negative, neutral
-  topics: text("topics").array(), // array of discussed topics
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
-export const chatMessages = pgTable("chat_messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: varchar("conversation_id").notNull(),
-  userId: varchar("user_id").notNull(),
-  role: varchar("role").notNull(), // user, assistant
-  content: text("content").notNull(),
-  context: jsonb("context"), // Additional context like mood, recent activities
-  sentiment: varchar("sentiment"), // message sentiment
-  topics: text("topics").array(), // topics mentioned in this message
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// User context profile for personalized responses
-export const userContext = pgTable("user_context", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().unique(),
-  preferences: jsonb("preferences"), // Communication style, topics of interest
-  mentalHealthProfile: jsonb("mental_health_profile"), // Common concerns, triggers, coping strategies
-  conversationHistory: jsonb("conversation_history"), // Recent conversation summaries
-  personalDetails: jsonb("personal_details"), // Name preferences, important life details
-  lastActive: timestamp("last_active").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
 // Insert schemas
 export const upsertUserSchema = createInsertSchema(users);
@@ -224,22 +190,7 @@ export const insertUserStreakSchema = createInsertSchema(userStreaks);
 
 export const insertAchievementSchema = createInsertSchema(achievements);
 
-export const insertChatConversationSchema = createInsertSchema(chatConversations).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
-export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertUserContextSchema = createInsertSchema(userContext).omit({
-  id: true,
-  lastActive: true,
-  updatedAt: true,
-});
 
 // Onboarding schema for capturing initial user info
 export const onboardingSchema = z.object({
@@ -298,11 +249,4 @@ export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;
 
-export type ChatConversation = typeof chatConversations.$inferSelect;
-export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
 
-export type ChatMessage = typeof chatMessages.$inferSelect;
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-
-export type UserContext = typeof userContext.$inferSelect;
-export type InsertUserContext = z.infer<typeof insertUserContextSchema>;
