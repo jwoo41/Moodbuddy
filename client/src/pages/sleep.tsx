@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +19,7 @@ import { SleepEntry } from "@shared/schema";
 const sleepFormSchema = z.object({
   bedtime: z.string().min(1, "Bedtime is required"),
   wakeTime: z.string().min(1, "Wake time is required"),
-  quality: z.string().optional(),
+  quality: z.string().min(1, "Sleep quality is required"),
   notes: z.string().optional(),
 });
 
@@ -61,7 +61,7 @@ export default function Sleep() {
         bedtime: new Date(`${new Date().toDateString()} ${data.bedtime}:00`),
         wakeTime: new Date(`${new Date().toDateString()} ${data.wakeTime}:00`),
         hoursSlept,
-        quality: data.quality || "good", // Default to "good" if not provided
+        quality: data.quality,
         notes: data.notes || undefined,
       };
 
@@ -142,9 +142,6 @@ export default function Sleep() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Sleep Entry</DialogTitle>
-              <DialogDescription>
-                Record your sleep schedule and quality to track your rest patterns.
-              </DialogDescription>
             </DialogHeader>
             
             <Form {...form}>
@@ -182,8 +179,8 @@ export default function Sleep() {
                   name="quality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sleep Quality (optional)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormLabel>Sleep Quality</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-sleep-quality">
                             <SelectValue placeholder="How well did you sleep?" />

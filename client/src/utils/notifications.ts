@@ -8,7 +8,7 @@ async function ensurePermission() {
 
 export async function scheduleLocalNotificationsForMed(med: Med) {
   await ensurePermission();
-  const base = Math.abs(med.id.split('').reduce((a,c)=>a + c.charCodeAt(0), 0)) % 100000;
+  const base = Math.abs([...med.id].reduce((a,c)=>a + c.charCodeAt(0), 0)) % 100000;
   const notifs = (med.times || []).map((t, idx) => {
     const [h, min] = t.split(":").map(Number);
     return {
@@ -23,7 +23,7 @@ export async function scheduleLocalNotificationsForMed(med: Med) {
 }
 
 export async function cancelNotificationsForMed(med: Med) {
-  const base = Math.abs(med.id.split('').reduce((a,c)=>a + c.charCodeAt(0), 0)) % 100000;
+  const base = Math.abs([...med.id].reduce((a,c)=>a + c.charCodeAt(0), 0)) % 100000;
   const ids = (med.times || []).map((_, i) => base + i);
   await LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) });
 }

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,7 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      displayName: "",
+      displayName: userName || "",
       email: "",
       phoneNumber: "",
       emergencyContactName: "",
@@ -37,13 +37,6 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
       alertsEnabled: true,
     },
   });
-
-  // Update form when userName prop changes
-  useEffect(() => {
-    if (userName) {
-      form.setValue("displayName", userName);
-    }
-  }, [userName, form]);
 
   const onboardingMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
@@ -101,9 +94,9 @@ export default function OnboardingModal({ open, onComplete, userName }: Onboardi
             </div>
             Welcome to MoodBuddy!
           </DialogTitle>
-          <DialogDescription>
+          <p className="text-muted-foreground">
             Let's set up your profile to personalize your mental health journey
-          </DialogDescription>
+          </p>
         </DialogHeader>
 
         <Form {...form}>

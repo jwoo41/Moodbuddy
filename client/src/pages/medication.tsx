@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -154,9 +154,6 @@ export default function Medication() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add Medication</DialogTitle>
-              <DialogDescription>
-                Add a new medication to track your medication adherence.
-              </DialogDescription>
             </DialogHeader>
             
             <Form {...form}>
@@ -195,7 +192,7 @@ export default function Medication() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Frequency</FormLabel>
-                      <Select onValueChange={handleFrequencyChange} value={field.value || ""}>
+                      <Select onValueChange={handleFrequencyChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-medication-frequency">
                             <SelectValue placeholder="How often?" />

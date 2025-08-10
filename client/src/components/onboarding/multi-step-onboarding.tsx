@@ -171,7 +171,7 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
                 <span className="text-2xl">💪</span>
               </div>
               <div>
-                <div className="font-medium text-gray-900">Track exercise and measure overall progress</div>
+                <div className="font-medium text-gray-900">Track your exercise & build healthy habits</div>
               </div>
             </div>
           </div>

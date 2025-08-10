@@ -8,7 +8,7 @@ const navigation = [
   { name: "Medication", href: "/medication" },
   { name: "Mood", href: "/mood" },
   { name: "Journal", href: "/journal" },
-  { name: "Progress", href: "/progress" },
+  { name: "Soundscape", href: "/soundscape" },
 ];
 
 export default function Header() {
