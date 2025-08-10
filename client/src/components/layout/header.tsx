@@ -18,8 +18,14 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Brain className="text-white w-4 h-4" />
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 100 120" className="rounded">
+                <ellipse cx="50" cy="85" rx="18" ry="15" fill="#FF8A65" />
+                <circle cx="50" cy="50" r="25" fill="#FF8A65" />
+                <circle cx="42" cy="42" r="2.5" fill="#1976D2" />
+                <circle cx="58" cy="42" r="2.5" fill="#1976D2" />
+                <path d="M 40 58 Q 50 65 60 58" stroke="#1976D2" strokeWidth="2" fill="none" strokeLinecap="round" />
+              </svg>
             </div>
             <h1 className="text-xl font-semibold text-moodbuddy-neutral-900 dark:text-foreground">
               MoodBuddy
