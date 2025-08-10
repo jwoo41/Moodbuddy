@@ -228,7 +228,7 @@ export default function SmartChat() {
   };
 
   return (
-    <Card className="h-[500px] flex flex-col">
+    <Card className="h-[500px] md:h-[500px] flex flex-col mb-20 md:mb-0">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full flex items-center justify-center">
@@ -343,7 +343,7 @@ export default function SmartChat() {
             )}
           </div>
         </ScrollArea>
-        <div className="p-4 border-t bg-white dark:bg-card">
+        <div className="p-4 border-t bg-white dark:bg-card pb-20 md:pb-4">
           <div className="flex space-x-2">
             <input
               ref={inputRef}
@@ -352,7 +352,7 @@ export default function SmartChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Tell me what's on your mind..."
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="flex-1 px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               disabled={isLoading}
               data-testid="input-chat-message"
             />
@@ -361,7 +361,7 @@ export default function SmartChat() {
               disabled={!input.trim() || isLoading}
               size="sm"
               data-testid="button-send-message"
-              className="px-4 py-2"
+              className="px-4 py-3 min-w-[48px] h-auto"
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
