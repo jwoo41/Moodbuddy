@@ -51,6 +51,7 @@ The application follows a dashboard-centric approach where users can view aggreg
   - Dynamic color themes that match the current active soundscape
   - Automatic soundscape switching when mood changes while playing
 - **Simplified Interface**: AI chat functionality, background music, and adaptive soundscape features have been removed per user request to focus on core mental health tracking features
+- **Updated Onboarding Flow**: Replaced "Ask questions & discuss mental health topics" feature with "Track your exercise & build healthy habits" using flex emoji 💪 in the onboarding features showcase
 
 ## User Preferences
 
