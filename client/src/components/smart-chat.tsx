@@ -61,9 +61,9 @@ export default function SmartChat() {
     checkAPIKey();
   }, []);
 
-  // Load chat history when data becomes available
+  // Load chat history only on initial load
   useEffect(() => {
-    if (chatHistory && (chatHistory as any).messages && (chatHistory as any).messages.length > 0) {
+    if (chatHistory && (chatHistory as any).messages && (chatHistory as any).messages.length > 0 && messages.length === 1) {
       const historyMessages = (chatHistory as any).messages.map((msg: any) => ({
         id: msg.id,
         role: msg.role,
@@ -72,7 +72,7 @@ export default function SmartChat() {
         topics: msg.topics,
         sentiment: msg.sentiment
       }));
-      setMessages(historyMessages);
+      setMessages([...messages, ...historyMessages]);
     }
   }, [chatHistory]);
 
