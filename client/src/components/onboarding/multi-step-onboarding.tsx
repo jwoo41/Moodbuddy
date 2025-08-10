@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -80,10 +81,19 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
   };
 
   const handleComplete = async () => {
-    if (selectedMood) {
-      await addMoodMutation.mutateAsync(selectedMood);
+    try {
+      if (selectedMood) {
+        await addMoodMutation.mutateAsync(selectedMood);
+      }
+      await updateUserMutation.mutateAsync();
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete setup. Please try again.",
+        variant: "destructive",
+      });
     }
-    updateUserMutation.mutate();
   };
 
   const steps = [
@@ -94,8 +104,13 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
       content: (
         <div className="text-center space-y-6">
           <div className="mx-auto w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center">
-            <div className="w-20 h-20 bg-orange-400 rounded-full flex items-center justify-center">
-              <div className="text-3xl">😊</div>
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg width="60" height="60" viewBox="0 0 100 100" className="rounded-full">
+                <circle cx="50" cy="50" r="40" fill="#FF8A65" />
+                <circle cx="35" cy="40" r="4" fill="#1976D2" />
+                <circle cx="65" cy="40" r="4" fill="#1976D2" />
+                <path d="M 35 60 Q 50 70 65 60" stroke="#1976D2" strokeWidth="3" fill="none" strokeLinecap="round" />
+              </svg>
             </div>
           </div>
           <div className="space-y-4 max-w-sm mx-auto">
@@ -264,11 +279,11 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
           
           <Button 
             onClick={handleComplete}
-            disabled={!selectedMood || updateUserMutation.isPending}
+            disabled={!selectedMood || updateUserMutation.isPending || addMoodMutation.isPending}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium"
             data-testid="button-save-mood"
           >
-            {updateUserMutation.isPending ? "Setting up..." : "Save"}
+            {(updateUserMutation.isPending || addMoodMutation.isPending) ? "Setting up..." : "Save"}
           </Button>
         </div>
       )
@@ -280,6 +295,9 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-gray-50 border-0 shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>MoodBuddy Onboarding</DialogTitle>
+        </VisuallyHidden>
         <div className="p-6 space-y-8">
           {/* Progress indicator */}
           <div className="flex justify-center space-x-2">
