@@ -1373,26 +1373,76 @@ export default function Home() {
                     
                     {selectedFrequency && (
                       <div>
-                        <FormLabel>Times</FormLabel>
-                        <div className="space-y-2 mt-2">
-                          {medForm.watch("times")?.map((time, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                              <Input
-                                type="time"
-                                value={time || ""}
-                                onChange={(e) => {
-                                  const times = [...(medForm.getValues("times") || [])];
-                                  times[index] = e.target.value;
-                                  medForm.setValue("times", times);
-                                }}
-                                data-testid={`input-medication-time-${index}`}
-                                className="flex-1"
-                              />
-                              <span className="text-sm text-muted-foreground min-w-12">
-                                {parseInt(time?.split(':')[0] || '0') < 12 ? 'AM' : 'PM'}
-                              </span>
-                            </div>
-                          )) || []}
+                        <FormLabel>Select Times</FormLabel>
+                        <div className="space-y-3 mt-2">
+                          {Array.from({ length: frequencies.find(f => f.value === selectedFrequency)?.times || 1 }).map((_, index) => {
+                            const currentTime = medForm.watch("times")?.[index];
+                            const presetTimes = [
+                              { value: "06:00", label: "6:00 AM", display: "6:00 AM" },
+                              { value: "07:00", label: "7:00 AM", display: "7:00 AM" },
+                              { value: "08:00", label: "8:00 AM", display: "8:00 AM" },
+                              { value: "09:00", label: "9:00 AM", display: "9:00 AM" },
+                              { value: "10:00", label: "10:00 AM", display: "10:00 AM" },
+                              { value: "12:00", label: "12:00 PM", display: "12:00 PM" },
+                              { value: "13:00", label: "1:00 PM", display: "1:00 PM" },
+                              { value: "14:00", label: "2:00 PM", display: "2:00 PM" },
+                              { value: "17:00", label: "5:00 PM", display: "5:00 PM" },
+                              { value: "18:00", label: "6:00 PM", display: "6:00 PM" },
+                              { value: "19:00", label: "7:00 PM", display: "7:00 PM" },
+                              { value: "20:00", label: "8:00 PM", display: "8:00 PM" },
+                              { value: "21:00", label: "9:00 PM", display: "9:00 PM" },
+                              { value: "22:00", label: "10:00 PM", display: "10:00 PM" },
+                            ];
+                            
+                            return (
+                              <div key={index} className="space-y-2">
+                                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {index === 0 && selectedFrequency === 'daily' && 'Daily Dose'}
+                                  {index === 0 && selectedFrequency === 'twice-daily' && 'Morning Dose'}
+                                  {index === 1 && selectedFrequency === 'twice-daily' && 'Evening Dose'}
+                                  {index === 0 && selectedFrequency === 'three-times-daily' && 'Morning Dose'}
+                                  {index === 1 && selectedFrequency === 'three-times-daily' && 'Afternoon Dose'}
+                                  {index === 2 && selectedFrequency === 'three-times-daily' && 'Evening Dose'}
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {presetTimes.map((presetTime) => (
+                                    <Button
+                                      key={presetTime.value}
+                                      type="button"
+                                      variant={currentTime === presetTime.value ? "default" : "outline"}
+                                      size="sm"
+                                      className="h-auto py-2 px-3 text-sm"
+                                      onClick={() => {
+                                        const times = [...(medForm.getValues("times") || [])];
+                                        times[index] = presetTime.value;
+                                        medForm.setValue("times", times);
+                                      }}
+                                      data-testid={`preset-time-${presetTime.value}-${index}`}
+                                    >
+                                      <div className="text-center">
+                                        <div className="font-semibold">{presetTime.display}</div>
+                                      </div>
+                                    </Button>
+                                  ))}
+                                </div>
+                                {/* Custom time option */}
+                                <div className="flex items-center space-x-2 mt-2">
+                                  <span className="text-xs text-gray-500">Or custom time:</span>
+                                  <Input
+                                    type="time"
+                                    value={currentTime || ""}
+                                    onChange={(e) => {
+                                      const times = [...(medForm.getValues("times") || [])];
+                                      times[index] = e.target.value;
+                                      medForm.setValue("times", times);
+                                    }}
+                                    className="w-32 h-8 text-sm"
+                                    data-testid={`custom-time-${index}`}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
