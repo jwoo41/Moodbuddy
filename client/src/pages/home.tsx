@@ -1793,29 +1793,37 @@ export default function Home() {
               />
             )}
           </div>
+          
+          {/* Journal Section */}
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <span className="text-2xl mr-2">📝</span>
+                <span className="font-medium">Daily Journal</span>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                Take a moment to reflect on your day and write down your thoughts.
+              </p>
+              <Link href="/journal">
+                <Button 
+                  variant="outline" 
+                  className="w-full hover:bg-purple-50 hover:border-purple-200 hover:text-purple-800 dark:hover:bg-purple-900/20"
+                  data-testid="button-open-journal"
+                >
+                  <span className="text-xl mr-2">📝</span>
+                  Write in Journal
+                </Button>
+              </Link>
+            </div>
+          </div>
         </CardHeader>
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Link href="/sleep">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">😴</div>
-              <div className="font-medium">Sleep History</div>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/medication">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <div className="text-4xl mb-2">💊</div>
-              <div className="font-medium">Manage Meds</div>
-            </CardContent>
-          </Card>
-        </Link>
-        
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <Link href="/journal">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
