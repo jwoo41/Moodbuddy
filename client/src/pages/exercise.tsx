@@ -16,6 +16,7 @@ export default function Exercise() {
   const queryClient = useQueryClient();
 
   const [weightForm, setWeightForm] = useState({ weight: "", unit: "lbs", notes: "" });
+  const [isEditingWeight, setIsEditingWeight] = useState(false);
 
   const { data: exerciseEntries = [] } = useQuery<ExerciseEntry[]>({
     queryKey: ['/api/exercise'],
@@ -71,6 +72,24 @@ export default function Exercise() {
         title: "Weight logged",
         description: "Your weight has been recorded for today.",
       });
+      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+    },
+  });
+
+  const updateWeightMutation = useMutation({
+    mutationFn: async (data: { id: string; weight: number; unit: string; notes?: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest("PUT", `/api/weight/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/weight"] });
+      toast({
+        title: "Weight updated",
+        description: "Your weight has been updated successfully.",
+      });
+      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+      setIsEditingWeight(false);
     },
   });
 
@@ -162,7 +181,7 @@ export default function Exercise() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {getTodaysWeight() ? (
+          {getTodaysWeight() && !isEditingWeight ? (
             <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <div className="text-2xl mb-2">⚖️</div>
               <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
@@ -184,6 +203,7 @@ export default function Exercise() {
                       unit: todaysWeight.unit,
                       notes: todaysWeight.notes || ""
                     });
+                    setIsEditingWeight(true);
                   }
                 }}
                 data-testid="button-edit-weight"
@@ -217,24 +237,52 @@ export default function Exercise() {
                 onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
                 data-testid="input-weight-notes"
               />
-              <Button
-                onClick={() => {
-                  const weight = parseFloat(weightForm.weight);
-                  if (weight > 0) {
-                    addWeightMutation.mutate({
-                      weight,
-                      unit: weightForm.unit,
-                      notes: weightForm.notes || undefined
-                    });
-                    setWeightForm({ weight: "", unit: "lbs", notes: "" });
-                  }
-                }}
-                disabled={!weightForm.weight || addWeightMutation.isPending}
-                className="w-full"
-                data-testid="button-log-weight"
-              >
-                {addWeightMutation.isPending ? "Logging..." : "⚖️ Log Weight"}
-              </Button>
+              <div className="flex gap-2">
+                {isEditingWeight && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                      setIsEditingWeight(false);
+                    }}
+                    className="flex-1"
+                    data-testid="button-cancel-weight"
+                  >
+                    Cancel
+                  </Button>
+                )}
+                <Button
+                  onClick={() => {
+                    const weight = parseFloat(weightForm.weight);
+                    if (weight > 0) {
+                      const todaysWeight = getTodaysWeight();
+                      if (todaysWeight) {
+                        updateWeightMutation.mutate({
+                          id: todaysWeight.id,
+                          weight,
+                          unit: weightForm.unit,
+                          notes: weightForm.notes || undefined
+                        });
+                      } else {
+                        addWeightMutation.mutate({
+                          weight,
+                          unit: weightForm.unit,
+                          notes: weightForm.notes || undefined
+                        });
+                      }
+                      if (!todaysWeight) {
+                        setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                        setIsEditingWeight(false);
+                      }
+                    }
+                  }}
+                  disabled={!weightForm.weight || addWeightMutation.isPending || updateWeightMutation.isPending}
+                  className={isEditingWeight ? "flex-1" : "w-full"}
+                  data-testid="button-log-weight"
+                >
+                  {(addWeightMutation.isPending || updateWeightMutation.isPending) ? "Saving..." : (getTodaysWeight() && isEditingWeight ? "⚖️ Update Weight" : "⚖️ Log Weight")}
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
