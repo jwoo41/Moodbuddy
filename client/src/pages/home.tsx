@@ -130,6 +130,14 @@ export default function Home() {
     queryKey: ['/api/weight'],
   });
 
+  // Additional state for exercise and weight tracking
+  const [isEditingWeight, setIsEditingWeight] = useState(false);
+  const [weightForm, setWeightForm] = useState({ 
+    weight: "", 
+    unit: "lbs", 
+    notes: "" 
+  });
+
   // Helper functions
   const getTimeSlots = () => {
     switch (selectedFrequency) {
@@ -374,6 +382,86 @@ export default function Home() {
     },
   });
 
+  const addExerciseMutation = useMutation({
+    mutationFn: async (data: { exercised: boolean; notes?: string }) => {
+      const todaysExercise = getTodaysExercise();
+      if (todaysExercise) {
+        const response = await apiRequest("PUT", `/api/exercise/${todaysExercise.id}`, data);
+        return response.json();
+      } else {
+        const response = await apiRequest("POST", "/api/exercise", data);
+        return response.json();
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/exercise'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/streaks'] });
+      
+      handleAchievements(data);
+      
+      let description = getTodaysExercise() ? "Exercise status updated!" : "Exercise logged!";
+      if (data.gamification?.streak > 1) {
+        description += ` 🔥 ${data.gamification.streak} day streak!`;
+      }
+      if (data.gamification?.isNewRecord) {
+        description += " 🎉 New record!";
+      }
+      
+      toast({
+        title: "Exercise tracked!",
+        description,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to log exercise. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const addWeightMutation = useMutation({
+    mutationFn: async (data: { weight: number; unit: string; notes?: string }) => {
+      const todaysWeight = getTodaysWeight();
+      if (todaysWeight) {
+        const response = await apiRequest("PUT", `/api/weight/${todaysWeight.id}`, data);
+        return response.json();
+      } else {
+        const response = await apiRequest("POST", "/api/weight", data);
+        return response.json();
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/weight'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/streaks'] });
+      
+      handleAchievements(data);
+      
+      let description = getTodaysWeight() ? "Weight updated!" : "Weight logged!";
+      if (data.gamification?.streak > 1) {
+        description += ` 🔥 ${data.gamification.streak} day streak!`;
+      }
+      if (data.gamification?.isNewRecord) {
+        description += " 🎉 New record!";
+      }
+      
+      toast({
+        title: "Weight tracked!",
+        description,
+      });
+      setWeightForm({ weight: "", unit: "lbs", notes: "" });
+      setIsEditingWeight(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to log weight. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Helper functions for actions
   const markMedicationTaken = (medicationId: string, scheduledTime: string) => {
     markMedicationTakenMutation.mutate({ medicationId, scheduledTime });
@@ -450,6 +538,24 @@ export default function Home() {
 
   const onMedSubmit = (data: MedicationFormData) => {
     addMedicationMutation.mutate(data);
+  };
+
+  const onWeightSubmit = () => {
+    const weight = parseFloat(weightForm.weight);
+    if (isNaN(weight) || weight <= 0) {
+      toast({
+        title: "Invalid weight",
+        description: "Please enter a valid weight",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addWeightMutation.mutate({
+      weight,
+      unit: weightForm.unit,
+      notes: weightForm.notes || undefined,
+    });
   };
 
   if (showOnboarding) {
@@ -758,44 +864,224 @@ export default function Home() {
           </CardContent>
         </Card>
 
+        {/* Exercise Tracker */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Activity className="w-6 h-6 mr-2 text-orange-500" />
+              Today's Exercise
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {getTodaysExercise() ? (
+              <div className="text-center bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                <div className="text-2xl mb-2">
+                  {getTodaysExercise()?.exercised ? "💪" : "😴"}
+                </div>
+                <div className="text-lg font-medium text-green-700 dark:text-green-400 mb-2">
+                  {getTodaysExercise()?.exercised ? "Great job exercising today!" : "Rest day logged"}
+                </div>
+                {getTodaysExercise()?.notes && (
+                  <p className="text-sm text-green-600 dark:text-green-300 mb-3">
+                    Notes: {getTodaysExercise()?.notes}
+                  </p>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const currentExercise = getTodaysExercise();
+                    if (currentExercise) {
+                      addExerciseMutation.mutate({ 
+                        exercised: !currentExercise.exercised, 
+                        notes: currentExercise.notes || undefined 
+                      });
+                    }
+                  }}
+                  data-testid="button-toggle-exercise"
+                >
+                  Change to {getTodaysExercise()?.exercised ? "Rest Day" : "Exercised"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-center text-muted-foreground">
+                  Did you exercise today? Even a short walk counts!
+                </p>
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={() => addExerciseMutation.mutate({ exercised: true })}
+                    disabled={addExerciseMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    data-testid="button-exercised-yes"
+                  >
+                    💪 Yes, I exercised!
+                  </Button>
+                  <Button
+                    onClick={() => addExerciseMutation.mutate({ exercised: false })}
+                    disabled={addExerciseMutation.isPending}
+                    variant="outline" 
+                    className="flex-1"
+                    data-testid="button-exercised-no"
+                  >
+                    😴 Rest day
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Weight Tracker */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Weight className="w-6 h-6 mr-2 text-purple-500" />
+              Weight Tracker
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {getTodaysWeight() && !isEditingWeight ? (
+              <div className="text-center bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div className="text-2xl mb-2">⚖️</div>
+                <div className="text-lg font-medium text-blue-700 dark:text-blue-400 mb-2">
+                  Today: {getTodaysWeight()?.weight} {getTodaysWeight()?.unit}
+                </div>
+                {getTodaysWeight()?.notes && (
+                  <p className="text-sm text-blue-600 dark:text-blue-300 mb-3">
+                    Notes: {getTodaysWeight()?.notes}
+                  </p>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const todaysWeight = getTodaysWeight();
+                    if (todaysWeight) {
+                      setWeightForm({
+                        weight: todaysWeight.weight.toString(),
+                        unit: todaysWeight.unit,
+                        notes: todaysWeight.notes || ""
+                      });
+                      setIsEditingWeight(true);
+                    }
+                  }}
+                  data-testid="button-edit-weight"
+                >
+                  Update Weight
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    type="number"
+                    placeholder="Weight"
+                    value={weightForm.weight}
+                    onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
+                    data-testid="input-weight"
+                  />
+                  <Select value={weightForm.unit} onValueChange={(value) => setWeightForm({...weightForm, unit: value})}>
+                    <SelectTrigger data-testid="select-weight-unit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lbs">lbs</SelectItem>
+                      <SelectItem value="kg">kg</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Input
+                  placeholder="Notes (optional)"
+                  value={weightForm.notes}
+                  onChange={(e) => setWeightForm({...weightForm, notes: e.target.value})}
+                  data-testid="input-weight-notes"
+                />
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={onWeightSubmit}
+                    disabled={!weightForm.weight || addWeightMutation.isPending}
+                    data-testid="button-log-weight"
+                    className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                  >
+                    {addWeightMutation.isPending ? "⚖️ Saving..." : getTodaysWeight() ? "⚖️ Update Weight" : "⚖️ Log Weight"}
+                  </Button>
+                  {isEditingWeight && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setWeightForm({ weight: "", unit: "lbs", notes: "" });
+                        setIsEditingWeight(false);
+                      }}
+                      data-testid="button-cancel-weight-edit"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Link href="/mood">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <h3 className="font-medium">Mood</h3>
-                <p className="text-sm text-muted-foreground">Track feelings</p>
+              <CardContent className="p-4 text-center">
+                <Heart className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Mood</h3>
+                <p className="text-xs text-muted-foreground">Track feelings</p>
               </CardContent>
             </Card>
           </Link>
           
           <Link href="/sleep">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Moon className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                <h3 className="font-medium">Sleep</h3>
-                <p className="text-sm text-muted-foreground">Log rest</p>
+              <CardContent className="p-4 text-center">
+                <Moon className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Sleep</h3>
+                <p className="text-xs text-muted-foreground">Log rest</p>
               </CardContent>
             </Card>
           </Link>
           
           <Link href="/medication">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <Pill className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <h3 className="font-medium">Medication</h3>
-                <p className="text-sm text-muted-foreground">Manage doses</p>
+              <CardContent className="p-4 text-center">
+                <Pill className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Medication</h3>
+                <p className="text-xs text-muted-foreground">Manage doses</p>
+              </CardContent>
+            </Card>
+          </Link>
+          
+          <Link href="/exercise">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-4 text-center">
+                <Activity className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Exercise</h3>
+                <p className="text-xs text-muted-foreground">Track activity</p>
               </CardContent>
             </Card>
           </Link>
           
           <Link href="/journal">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <PenTool className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <h3 className="font-medium">Journal</h3>
-                <p className="text-sm text-muted-foreground">Write thoughts</p>
+              <CardContent className="p-4 text-center">
+                <PenTool className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Journal</h3>
+                <p className="text-xs text-muted-foreground">Write thoughts</p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/gamification">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="p-4 text-center">
+                <Weight className="w-6 h-6 text-indigo-500 mx-auto mb-2" />
+                <h3 className="font-medium text-sm">Progress</h3>
+                <p className="text-xs text-muted-foreground">View streaks</p>
               </CardContent>
             </Card>
           </Link>
