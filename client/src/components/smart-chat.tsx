@@ -186,14 +186,12 @@ export default function SmartChat() {
     <Card className="h-[500px] flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-            <svg width="24" height="24" viewBox="0 0 100 120" className="rounded">
-              <ellipse cx="50" cy="85" rx="18" ry="15" fill="#FF8A65" />
-              <circle cx="50" cy="50" r="25" fill="#FF8A65" />
-              <circle cx="42" cy="42" r="2.5" fill="#1976D2" />
-              <circle cx="58" cy="42" r="2.5" fill="#1976D2" />
-              <path d="M 40 58 Q 50 65 60 58" stroke="#1976D2" strokeWidth="2" fill="none" strokeLinecap="round" />
-            </svg>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center">
+            <img 
+              src="/attached_assets/E8DD0ACA-4AA3-4CE3-9E12-F53F81926CC4_1754843158324.png" 
+              alt="MoodBuddy Avatar" 
+              className="w-8 h-8 rounded-full object-cover"
+            />
           </div>
           <CardTitle>
             {hasOpenAI ? "Smart Chat with MoodBuddy" : "Chat with MoodBuddy"}
