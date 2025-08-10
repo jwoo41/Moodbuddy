@@ -50,7 +50,7 @@ The application follows a dashboard-centric approach where users can view aggreg
   - Play/pause functionality with seamless looping
   - Dynamic color themes that match the current active soundscape
   - Automatic soundscape switching when mood changes while playing
-- **Chat System Temporarily Removed**: AI chat functionality and background music features have been temporarily disabled per user request to simplify the application focus
+- **Simplified Interface**: AI chat functionality, background music, and adaptive soundscape features have been removed per user request to focus on core mental health tracking features
 
 ## User Preferences
 
