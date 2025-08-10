@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User as UserType, MoodEntry, SleepEntry, Medication, MedicationTaken, ExerciseEntry, WeightEntry } from "@shared/schema";
 import OnboardingModal from "@/components/onboarding/onboarding-modal";
+import { MultiStepOnboarding } from "@/components/onboarding/multi-step-onboarding";
 import MoodChart from "@/components/mood/mood-chart";
 import { AchievementToast } from "@/components/gamification/achievement-toast";
 
@@ -1886,9 +1887,9 @@ export default function Home() {
       {/* Bottom spacing for mobile nav */}
       <div className="h-20 md:h-0"></div>
 
-      {/* Dynamic import to prevent bundle size issues */}
+      {/* Multi-step onboarding experience */}
       {showOnboarding && (
-        <OnboardingModal 
+        <MultiStepOnboarding 
           open={showOnboarding} 
           onComplete={() => setShowOnboarding(false)}
           userName={user?.firstName || user?.displayName || ""}
