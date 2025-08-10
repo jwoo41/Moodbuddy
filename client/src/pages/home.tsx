@@ -1173,7 +1173,7 @@ export default function Home() {
                         field.onChange(value);
                         handleFrequencyChange(value);
                       }} 
-                      value={field.value}
+                      value={field.value || ""}
                       data-testid="select-medication-frequency"
                     >
                       <FormControl>

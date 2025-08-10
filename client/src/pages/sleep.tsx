@@ -183,7 +183,7 @@ export default function Sleep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sleep Quality (optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-sleep-quality">
                             <SelectValue placeholder="How well did you sleep?" />
