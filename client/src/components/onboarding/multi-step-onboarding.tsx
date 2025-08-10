@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,7 +34,8 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
   const updateUserMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("PUT", `/api/auth/user`, {
-        onboardingCompleted: true
+        onboardingCompleted: true,
+        displayName: userName || "Friend"
       });
       return response.json();
     },
@@ -104,18 +105,21 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
       content: (
         <div className="text-center space-y-6">
           <div className="mx-auto w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg width="60" height="60" viewBox="0 0 100 100" className="rounded-full">
-                <circle cx="50" cy="50" r="40" fill="#FF8A65" />
-                <circle cx="35" cy="40" r="4" fill="#1976D2" />
-                <circle cx="65" cy="40" r="4" fill="#1976D2" />
-                <path d="M 35 60 Q 50 70 65 60" stroke="#1976D2" strokeWidth="3" fill="none" strokeLinecap="round" />
-              </svg>
-            </div>
+            <svg width="80" height="80" viewBox="0 0 100 120" className="rounded-full">
+              {/* Body */}
+              <ellipse cx="50" cy="85" rx="25" ry="20" fill="#FF8A65" />
+              {/* Head */}
+              <circle cx="50" cy="50" r="35" fill="#FF8A65" />
+              {/* Eyes */}
+              <circle cx="40" cy="40" r="3" fill="#1976D2" />
+              <circle cx="60" cy="40" r="3" fill="#1976D2" />
+              {/* Smile */}
+              <path d="M 35 60 Q 50 70 65 60" stroke="#1976D2" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            </svg>
           </div>
           <div className="space-y-4 max-w-sm mx-auto">
             <p className="text-gray-600 leading-relaxed">
-              Here to help you track your mood, sleep, and meds—so you can feel more in control every day.
+              Here to help you track your mood, sleep, medications, and more—so you can feel more in control every day.
             </p>
           </div>
           <Button 
@@ -155,10 +159,10 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
             
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">⏰</span>
+                <span className="text-2xl">💊</span>
               </div>
               <div>
-                <div className="font-medium text-gray-900">Get gentle daily reminders</div>
+                <div className="font-medium text-gray-900">Track your medications & get reminders</div>
               </div>
             </div>
             
@@ -297,6 +301,7 @@ export function MultiStepOnboarding({ open, onComplete, userName }: MultiStepOnb
       <DialogContent className="sm:max-w-md bg-gray-50 border-0 shadow-2xl">
         <VisuallyHidden>
           <DialogTitle>MoodBuddy Onboarding</DialogTitle>
+          <DialogDescription>Complete the setup process for your MoodBuddy mental health companion</DialogDescription>
         </VisuallyHidden>
         <div className="p-6 space-y-8">
           {/* Progress indicator */}
