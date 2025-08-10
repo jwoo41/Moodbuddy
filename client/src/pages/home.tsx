@@ -1710,7 +1710,7 @@ export default function Home() {
               {getTodaysWeight() ? (
                 <div className="text-center">
                   <div className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                    Today: {getTodaysWeight()!.weight / 10} {getTodaysWeight()?.unit}
+                    Today: {getTodaysWeight()!.weight} {getTodaysWeight()?.unit}
                   </div>
                   <Button
                     size="sm"
@@ -1719,7 +1719,7 @@ export default function Home() {
                       const todaysWeight = getTodaysWeight();
                       if (todaysWeight) {
                         setWeightForm({
-                          weight: (todaysWeight.weight / 10).toString(),
+                          weight: todaysWeight.weight.toString(),
                           unit: todaysWeight.unit,
                           notes: todaysWeight.notes || ""
                         });
@@ -1733,7 +1733,7 @@ export default function Home() {
                 </div>
               ) : weightEntries.length > 0 && weightEntries[0] && (
                 <span className="text-sm text-muted-foreground">
-                  Last: {weightEntries[0].weight / 10} {weightEntries[0].unit} 
+                  Last: {weightEntries[0].weight} {weightEntries[0].unit} 
                   ({new Date(weightEntries[0].createdAt).toLocaleDateString()})
                 </span>
               )}
@@ -1769,13 +1769,13 @@ export default function Home() {
                     if (todaysWeight) {
                       updateWeightMutation.mutate({
                         id: todaysWeight.id,
-                        weight: Math.round(parseFloat(weightForm.weight) * 10),
+                        weight: parseFloat(weightForm.weight),
                         unit: weightForm.unit,
                         notes: weightForm.notes || undefined
                       });
                     } else {
                       addWeightMutation.mutate({
-                        weight: Math.round(parseFloat(weightForm.weight) * 10),
+                        weight: parseFloat(weightForm.weight),
                         unit: weightForm.unit,
                         notes: weightForm.notes || undefined
                       });

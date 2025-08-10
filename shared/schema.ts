@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, jsonb, index, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -95,7 +95,7 @@ export const exerciseEntries = pgTable("exercise_entries", {
 export const weightEntries = pgTable("weight_entries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
-  weight: integer("weight").notNull(), // Store weight as integer (e.g., 1505 for 150.5 lbs)
+  weight: real("weight").notNull(), // Store weight as decimal (e.g., 150.5 for 150.5 lbs)
   unit: varchar("unit").notNull().default("lbs"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
