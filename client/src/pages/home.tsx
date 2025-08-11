@@ -1533,48 +1533,62 @@ export default function Home() {
           )}
 
           {medications.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {medications.map((med) => (
-                <div key={med.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="font-medium">{med.name}{med.dosage ? ` - ${med.dosage}` : ''}</div>
-                      {notificationsEnabled && (
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Bell className="w-3 h-3 text-blue-500" />
-                          <span className="text-xs text-blue-600 dark:text-blue-400">
-                            Reminders active
-                          </span>
-                        </div>
-                      )}
+                <div key={med.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-600 overflow-hidden">
+                  {/* Medication header */}
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{med.name}</h3>
+                        {med.dosage && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{med.dosage}</p>
+                        )}
+                        {notificationsEnabled && (
+                          <div className="flex items-center space-x-1 mt-2">
+                            <Bell className="w-4 h-4 text-blue-500" />
+                            <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                              Reminders active
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          // Pre-populate form with existing medication data
+                          medForm.reset({
+                            name: med.name,
+                            dosage: med.dosage || undefined,
+                            frequency: med.frequency,
+                            times: med.times || []
+                          });
+                          setSelectedFrequency(med.frequency);
+                          setIsMedDialogOpen(true);
+                        }}
+                        data-testid={`button-edit-med-${med.id}`}
+                        className="px-6 py-2 rounded-xl"
+                      >
+                        Edit
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        // Pre-populate form with existing medication data
-                        medForm.reset({
-                          name: med.name,
-                          dosage: med.dosage || undefined,
-                          frequency: med.frequency,
-                          times: med.times || []
-                        });
-                        setSelectedFrequency(med.frequency);
-                        setIsMedDialogOpen(true);
-                      }}
-                      data-testid={`button-edit-med-${med.id}`}
-                    >
-                      Edit
-                    </Button>
                   </div>
                   
+                  {/* Dose cards */}
+                  <div className="p-4">
+                  
                   {/* Visual pill representation with individual tracking */}
-                  <div className="space-y-4 mb-4">
+                  <div className="space-y-3 mb-4">
                     {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => {
                       const time = med.times?.[pillIndex] || 'N/A';
                       const hour = parseInt(time.split(':')[0]);
+                      const minutes = time.split(':')[1];
                       const ampm = hour < 12 ? 'AM' : 'PM';
-                      const displayTime = `${hour === 0 ? 12 : hour > 12 ? hour - 12 : hour}:${time.split(':')[1]} ${ampm}`;
+                      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                      const timeOnly = `${displayHour}:${minutes}`;
+                      const doseLabel = ampm === 'AM' ? 'AM Dose' : 'PM Dose';
+                      
                       const isThisPillTaken = medicationTaken.some(record => 
                         record.medicationId === med.id &&
                         record.scheduledTime === time &&
@@ -1582,58 +1596,91 @@ export default function Home() {
                       );
                       
                       return (
-                        <div key={pillIndex} className={`p-4 rounded-lg border-2 ${isThisPillTaken ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div key={pillIndex} className={`p-4 rounded-2xl border-2 transition-all ${
+                          isThisPillTaken 
+                            ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-600' 
+                            : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600'
+                        }`}>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-16 h-8 rounded-full border-2 flex items-center justify-center text-lg ${
-                                isThisPillTaken ? 'bg-green-200 border-green-400' : 'bg-white border-gray-300'
+                            <div className="flex items-center space-x-4">
+                              {/* Pill icon */}
+                              <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-2xl ${
+                                isThisPillTaken 
+                                  ? 'bg-green-100 border-green-400 dark:bg-green-800 dark:border-green-500' 
+                                  : 'bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-500'
                               }`}>
                                 💊
                               </div>
-                              <div>
-                                <div className="font-bold text-lg">{displayTime}</div>
-                                <div className="text-sm text-gray-500">{ampm} Dose</div>
+                              {/* Time display */}
+                              <div className="text-center">
+                                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                  {timeOnly}
+                                </div>
+                                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                  {ampm}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                  {doseLabel}
+                                </div>
                               </div>
                             </div>
-                            <div className="flex space-x-2">
+                            
+                            {/* Action buttons */}
+                            <div className="flex space-x-3">
                               <Button
-                                size="sm"
+                                size="lg"
                                 variant="ghost"
-                                className="p-2 hover:bg-green-200 dark:hover:bg-green-800 flex flex-col items-center"
+                                className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all ${
+                                  isThisPillTaken 
+                                    ? 'bg-green-200 text-green-800 cursor-default dark:bg-green-700 dark:text-green-200' 
+                                    : 'hover:bg-green-100 dark:hover:bg-green-800'
+                                }`}
                                 onClick={() => {
-                                  markMedicationTakenMutation.mutate({
-                                    medicationId: med.id,
-                                    scheduledTime: time
-                                  });
+                                  if (!isThisPillTaken) {
+                                    markMedicationTakenMutation.mutate({
+                                      medicationId: med.id,
+                                      scheduledTime: time
+                                    });
+                                  }
                                 }}
                                 disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
                                 data-testid={`med-taken-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-2xl">👍</span>
-                                <span className="text-xs">Taken</span>
+                                <span className="text-3xl">👍</span>
+                                <span className="text-sm font-medium mt-1">Taken</span>
                               </Button>
+                              
                               <Button
-                                size="sm"
+                                size="lg"
                                 variant="ghost"
-                                className="p-2 hover:bg-red-200 dark:hover:bg-red-800 flex flex-col items-center"
+                                className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all ${
+                                  isThisPillTaken 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:bg-red-100 dark:hover:bg-red-800'
+                                }`}
                                 onClick={() => {
-                                  toast({
-                                    title: "Medication skipped",
-                                    description: `${displayTime} dose marked as skipped`,
-                                    variant: "destructive",
-                                  });
+                                  if (!isThisPillTaken) {
+                                    toast({
+                                      title: "Medication skipped",
+                                      description: `${timeOnly} ${ampm} dose marked as skipped`,
+                                      variant: "destructive",
+                                    });
+                                  }
                                 }}
                                 disabled={isThisPillTaken}
                                 data-testid={`med-skip-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-2xl">👎</span>
-                                <span className="text-xs">Skip</span>
+                                <span className="text-3xl">👎</span>
+                                <span className="text-sm font-medium mt-1">Skip</span>
                               </Button>
                             </div>
                           </div>
+                          
                           {isThisPillTaken && (
-                            <div className="mt-2 text-green-600 font-medium text-sm">
-                              ✅ TAKEN
+                            <div className="mt-3 text-center">
+                              <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200 text-sm font-medium">
+                                ✅ TAKEN
+                              </div>
                             </div>
                           )}
                         </div>
@@ -1666,6 +1713,7 @@ export default function Home() {
                         {med.notificationsEnabled ? 'Reminders on' : 'Reminders off'}
                       </span>
                     </div>
+                  </div>
                   </div>
                 </div>
               ))}
