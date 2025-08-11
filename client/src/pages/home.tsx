@@ -1535,59 +1535,48 @@ export default function Home() {
           {medications.length > 0 ? (
             <div className="space-y-4">
               {medications.map((med) => (
-                <div key={med.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-600 overflow-hidden">
-                  {/* Medication header */}
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{med.name}</h3>
-                        {med.dosage && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{med.dosage}</p>
-                        )}
-                        {notificationsEnabled && (
-                          <div className="flex items-center space-x-1 mt-2">
-                            <Bell className="w-4 h-4 text-blue-500" />
-                            <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                              Reminders active
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          // Pre-populate form with existing medication data
-                          medForm.reset({
-                            name: med.name,
-                            dosage: med.dosage || undefined,
-                            frequency: med.frequency,
-                            times: med.times || []
-                          });
-                          setSelectedFrequency(med.frequency);
-                          setIsMedDialogOpen(true);
-                        }}
-                        data-testid={`button-edit-med-${med.id}`}
-                        className="px-6 py-2 rounded-xl"
-                      >
-                        Edit
-                      </Button>
+                <div key={med.id} className="space-y-4">
+                  {/* Medication header - simple like in screenshot */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{med.name}</h3>
+                      {notificationsEnabled && (
+                        <div className="flex items-center space-x-1 mt-1">
+                          <Bell className="w-4 h-4 text-blue-500" />
+                          <span className="text-sm text-blue-600 dark:text-blue-400">Reminders active</span>
+                        </div>
+                      )}
                     </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        medForm.reset({
+                          name: med.name,
+                          dosage: med.dosage || undefined,
+                          frequency: med.frequency,
+                          times: med.times || []
+                        });
+                        setSelectedFrequency(med.frequency);
+                        setIsMedDialogOpen(true);
+                      }}
+                      data-testid={`button-edit-med-${med.id}`}
+                      className="px-4 py-2 rounded-lg"
+                    >
+                      Edit
+                    </Button>
                   </div>
                   
-                  {/* Dose cards */}
-                  <div className="p-4">
-                  
-                  {/* Visual pill representation with individual tracking */}
-                  <div className="space-y-3 mb-4">
+                  {/* Individual time cards exactly like screenshot */}
+                  <div className="space-y-3">
                     {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => {
                       const time = med.times?.[pillIndex] || 'N/A';
                       const hour = parseInt(time.split(':')[0]);
                       const minutes = time.split(':')[1];
                       const ampm = hour < 12 ? 'AM' : 'PM';
                       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                      const timeOnly = `${displayHour}:${minutes}`;
-                      const doseLabel = ampm === 'AM' ? 'AM Dose' : 'PM Dose';
+                      const timeDisplay = `${displayHour}:${minutes}`;
+                      const doseLabel = `${ampm} Dose`;
                       
                       const isThisPillTaken = medicationTaken.some(record => 
                         record.medicationId === med.id &&
@@ -1596,45 +1585,32 @@ export default function Home() {
                       );
                       
                       return (
-                        <div key={pillIndex} className={`p-4 rounded-2xl border-2 transition-all ${
-                          isThisPillTaken 
-                            ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-600' 
-                            : 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600'
-                        }`}>
+                        <div key={pillIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              {/* Pill icon */}
-                              <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center text-2xl ${
-                                isThisPillTaken 
-                                  ? 'bg-green-100 border-green-400 dark:bg-green-800 dark:border-green-500' 
-                                  : 'bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-500'
-                              }`}>
-                                💊
+                            {/* Left: Pill icon - exactly like screenshot */}
+                            <div className="w-12 h-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-500">
+                              <span className="text-xl">💊</span>
+                            </div>
+                            
+                            {/* Center: Time display - exactly like screenshot */}
+                            <div className="text-center flex-1 mx-4">
+                              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                {timeDisplay}
                               </div>
-                              {/* Time display */}
-                              <div className="text-center">
-                                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                                  {timeOnly}
-                                </div>
-                                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                  {ampm}
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                  {doseLabel}
-                                </div>
+                              <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                {ampm}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {doseLabel}
                               </div>
                             </div>
                             
-                            {/* Action buttons */}
+                            {/* Right: Action buttons - exactly like screenshot */}
                             <div className="flex space-x-3">
                               <Button
-                                size="lg"
                                 variant="ghost"
-                                className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all ${
-                                  isThisPillTaken 
-                                    ? 'bg-green-200 text-green-800 cursor-default dark:bg-green-700 dark:text-green-200' 
-                                    : 'hover:bg-green-100 dark:hover:bg-green-800'
-                                }`}
+                                size="sm"
+                                className="flex flex-col items-center px-3 py-2 hover:bg-green-100 dark:hover:bg-green-800"
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     markMedicationTakenMutation.mutate({
@@ -1646,23 +1622,19 @@ export default function Home() {
                                 disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
                                 data-testid={`med-taken-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-3xl">👍</span>
-                                <span className="text-sm font-medium mt-1">Taken</span>
+                                <span className="text-2xl">👍</span>
+                                <span className="text-xs font-medium">Taken</span>
                               </Button>
                               
                               <Button
-                                size="lg"
                                 variant="ghost"
-                                className={`w-20 h-20 rounded-2xl flex flex-col items-center justify-center transition-all ${
-                                  isThisPillTaken 
-                                    ? 'opacity-50 cursor-not-allowed' 
-                                    : 'hover:bg-red-100 dark:hover:bg-red-800'
-                                }`}
+                                size="sm"
+                                className="flex flex-col items-center px-3 py-2 hover:bg-red-100 dark:hover:bg-red-800"
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     toast({
                                       title: "Medication skipped",
-                                      description: `${timeOnly} ${ampm} dose marked as skipped`,
+                                      description: `${timeDisplay} ${ampm} dose marked as skipped`,
                                       variant: "destructive",
                                     });
                                   }
@@ -1670,17 +1642,17 @@ export default function Home() {
                                 disabled={isThisPillTaken}
                                 data-testid={`med-skip-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-3xl">👎</span>
-                                <span className="text-sm font-medium mt-1">Skip</span>
+                                <span className="text-2xl">👎</span>
+                                <span className="text-xs font-medium">Skip</span>
                               </Button>
                             </div>
                           </div>
                           
                           {isThisPillTaken && (
                             <div className="mt-3 text-center">
-                              <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200 text-sm font-medium">
+                              <span className="inline-block px-3 py-1 bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200 rounded-full text-sm font-medium">
                                 ✅ TAKEN
-                              </div>
+                              </span>
                             </div>
                           )}
                         </div>
@@ -1688,32 +1660,11 @@ export default function Home() {
                     })}
                   </div>
                   
+                  {/* Frequency display at bottom - exactly like screenshot */}
                   <div className="text-center mt-4">
-                    <div className="text-sm text-gray-500">
+                    <span className="text-gray-600 dark:text-gray-400">
                       {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
-                    </div>
-                    <div className="flex items-center justify-center mt-2 space-x-2">
-                      <Bell className={`w-4 h-4 ${med.notificationsEnabled ? 'text-blue-500' : 'text-gray-400'}`} />
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={med.notificationsEnabled ?? true}
-                          onChange={(e) => toggleMedicationNotifications(med.id, e.target.checked)}
-                          className="sr-only"
-                        />
-                        <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          med.notificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                        }`}>
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            med.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
-                          }`} />
-                        </div>
-                      </label>
-                      <span className="text-xs text-gray-500">
-                        {med.notificationsEnabled ? 'Reminders on' : 'Reminders off'}
-                      </span>
-                    </div>
-                  </div>
+                    </span>
                   </div>
                 </div>
               ))}
