@@ -1535,19 +1535,17 @@ export default function Home() {
           {medications.length > 0 ? (
             <div className="space-y-4">
               {medications.map((med) => (
-                <div key={med.id} className="space-y-4">
-                  {/* Medication header - exactly like screenshot */}
+                <div key={med.id} className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6">
+                  {/* Header: Lithium with Edit button - exact screenshot layout */}
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{med.name}</h3>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <Bell className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm text-blue-600 dark:text-blue-400">Reminders active</span>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{med.name}</h3>
+                      <div className="flex items-center mt-1">
+                        <Bell className="w-4 h-4 text-blue-500 mr-1" />
+                        <span className="text-sm text-blue-600">Reminders active</span>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
                       onClick={() => {
                         medForm.reset({
                           name: med.name,
@@ -1558,14 +1556,14 @@ export default function Home() {
                         setSelectedFrequency(med.frequency);
                         setIsMedDialogOpen(true);
                       }}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium"
                       data-testid={`button-edit-med-${med.id}`}
-                      className="px-6 py-2 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
                       Edit
-                    </Button>
+                    </button>
                   </div>
-                  
-                  {/* Individual time cards exactly like screenshot */}
+
+                  {/* Time cards - exact screenshot format */}
                   <div className="space-y-3">
                     {Array.from({ length: med.frequency === 'daily' ? 1 : med.frequency === 'twice-daily' ? 2 : 3 }).map((_, pillIndex) => {
                       const time = med.times?.[pillIndex] || 'N/A';
@@ -1574,7 +1572,6 @@ export default function Home() {
                       const ampm = hour < 12 ? 'AM' : 'PM';
                       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
                       const timeDisplay = `${displayHour}:${minutes}`;
-                      const doseLabel = `${ampm} Dose`;
                       
                       const isThisPillTaken = medicationTaken.some(record => 
                         record.medicationId === med.id &&
@@ -1583,83 +1580,67 @@ export default function Home() {
                       );
                       
                       return (
-                        <div key={pillIndex} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 border border-gray-200 dark:border-gray-600">
-                          <div className="flex items-center justify-between">
-                            {/* Left: Pill icon with red/white design exactly like screenshot */}
-                            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
-                              <div className="w-10 h-6 bg-gradient-to-r from-red-400 to-white rounded-full border border-gray-300 flex items-center">
-                                <div className="w-5 h-5 bg-red-400 rounded-full ml-0.5"></div>
-                                <div className="w-5 h-5 bg-white rounded-full mr-0.5"></div>
-                              </div>
-                            </div>
-                            
-                            {/* Center: Time display exactly like screenshot */}
-                            <div className="text-center flex-1">
-                              <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                                {timeDisplay}
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                {ampm}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {doseLabel}
-                              </div>
-                            </div>
-                            
-                            {/* Right: Thumbs up/down buttons exactly like screenshot */}
-                            <div className="flex space-x-3">
-                              <button
-                                className="flex flex-col items-center p-2 min-w-[60px] hover:bg-green-50 rounded-lg transition-colors"
-                                onClick={() => {
-                                  if (!isThisPillTaken) {
-                                    markMedicationTakenMutation.mutate({
-                                      medicationId: med.id,
-                                      scheduledTime: time
-                                    });
-                                  }
-                                }}
-                                disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
-                                data-testid={`med-taken-${med.id}-${pillIndex}`}
-                              >
-                                <span className="text-3xl">👍</span>
-                                <span className="text-sm font-medium text-gray-700">Taken</span>
-                              </button>
-                              
-                              <button
-                                className="flex flex-col items-center p-2 min-w-[60px] hover:bg-red-50 rounded-lg transition-colors"
-                                onClick={() => {
-                                  if (!isThisPillTaken) {
-                                    toast({
-                                      title: "Medication skipped",
-                                      description: `${timeDisplay} ${ampm} dose marked as skipped`,
-                                      variant: "destructive",
-                                    });
-                                  }
-                                }}
-                                disabled={isThisPillTaken}
-                                data-testid={`med-skip-${med.id}-${pillIndex}`}
-                              >
-                                <span className="text-3xl">👎</span>
-                                <span className="text-sm font-medium text-gray-700">Skip</span>
-                              </button>
+                        <div key={pillIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 flex items-center justify-between">
+                          {/* Pill icon - white circle with red/white capsule */}
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-gray-200">
+                            <div className="w-8 h-4 rounded-full overflow-hidden flex">
+                              <div className="w-4 h-4 bg-red-400 rounded-l-full"></div>
+                              <div className="w-4 h-4 bg-white rounded-r-full"></div>
                             </div>
                           </div>
                           
-                          {isThisPillTaken && (
-                            <div className="mt-3 text-center">
-                              <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                ✅ TAKEN
-                              </span>
-                            </div>
-                          )}
+                          {/* Time display */}
+                          <div className="text-center flex-1 mx-4">
+                            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{timeDisplay}</div>
+                            <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{ampm}</div>
+                            <div className="text-sm text-gray-500">{ampm} Dose</div>
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex space-x-4">
+                            <button
+                              onClick={() => {
+                                if (!isThisPillTaken) {
+                                  markMedicationTakenMutation.mutate({
+                                    medicationId: med.id,
+                                    scheduledTime: time
+                                  });
+                                }
+                              }}
+                              disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
+                              className="flex flex-col items-center"
+                              data-testid={`med-taken-${med.id}-${pillIndex}`}
+                            >
+                              <span className="text-2xl">👍</span>
+                              <span className="text-xs text-gray-600">Taken</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                if (!isThisPillTaken) {
+                                  toast({
+                                    title: "Medication skipped",
+                                    description: `${timeDisplay} ${ampm} dose marked as skipped`,
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              disabled={isThisPillTaken}
+                              className="flex flex-col items-center"
+                              data-testid={`med-skip-${med.id}-${pillIndex}`}
+                            >
+                              <span className="text-2xl">👎</span>
+                              <span className="text-xs text-gray-600">Skip</span>
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                   
-                  {/* Frequency display at bottom - exactly like screenshot */}
-                  <div className="text-center mt-6">
-                    <span className="text-lg text-gray-500 dark:text-gray-400 font-medium">
+                  {/* Frequency text at bottom */}
+                  <div className="text-center mt-4">
+                    <span className="text-gray-500">
                       {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
                     </span>
                   </div>
