@@ -1536,20 +1536,18 @@ export default function Home() {
             <div className="space-y-4">
               {medications.map((med) => (
                 <div key={med.id} className="space-y-4">
-                  {/* Medication header - simple like in screenshot */}
-                  <div className="flex items-center justify-between">
+                  {/* Medication header - exactly like screenshot */}
+                  <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{med.name}</h3>
-                      {notificationsEnabled && (
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Bell className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm text-blue-600 dark:text-blue-400">Reminders active</span>
-                        </div>
-                      )}
+                      <div className="flex items-center space-x-1 mt-1">
+                        <Bell className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm text-blue-600 dark:text-blue-400">Reminders active</span>
+                      </div>
                     </div>
                     <Button
-                      size="sm"
                       variant="outline"
+                      size="sm"
                       onClick={() => {
                         medForm.reset({
                           name: med.name,
@@ -1561,7 +1559,7 @@ export default function Home() {
                         setIsMedDialogOpen(true);
                       }}
                       data-testid={`button-edit-med-${med.id}`}
-                      className="px-4 py-2 rounded-lg"
+                      className="px-6 py-2 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
                       Edit
                     </Button>
@@ -1585,32 +1583,34 @@ export default function Home() {
                       );
                       
                       return (
-                        <div key={pillIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+                        <div key={pillIndex} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
                           <div className="flex items-center justify-between">
-                            {/* Left: Pill icon - exactly like screenshot */}
-                            <div className="w-12 h-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-500">
-                              <span className="text-xl">💊</span>
+                            {/* Left: Pill icon - circular with pill emoji like screenshot */}
+                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-600">
+                              <span className="text-2xl">💊</span>
                             </div>
                             
-                            {/* Center: Time display - exactly like screenshot */}
-                            <div className="text-center flex-1 mx-4">
-                              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            {/* Center: Time display - large time format like screenshot */}
+                            <div className="text-center flex-1">
+                              <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
                                 {timeDisplay}
                               </div>
-                              <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 {ampm}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                 {doseLabel}
                               </div>
                             </div>
                             
-                            {/* Right: Action buttons - exactly like screenshot */}
-                            <div className="flex space-x-3">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="flex flex-col items-center px-3 py-2 hover:bg-green-100 dark:hover:bg-green-800"
+                            {/* Right: Action buttons - thumbs up/down exactly like screenshot */}
+                            <div className="flex space-x-4">
+                              <button
+                                className={`flex flex-col items-center p-3 rounded-xl transition-all ${
+                                  isThisPillTaken 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200' 
+                                    : 'hover:bg-green-50 dark:hover:bg-green-900'
+                                }`}
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     markMedicationTakenMutation.mutate({
@@ -1622,14 +1622,16 @@ export default function Home() {
                                 disabled={isThisPillTaken || markMedicationTakenMutation.isPending}
                                 data-testid={`med-taken-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-2xl">👍</span>
-                                <span className="text-xs font-medium">Taken</span>
-                              </Button>
+                                <span className="text-3xl">👍</span>
+                                <span className="text-sm font-medium mt-1">Taken</span>
+                              </button>
                               
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="flex flex-col items-center px-3 py-2 hover:bg-red-100 dark:hover:bg-red-800"
+                              <button
+                                className={`flex flex-col items-center p-3 rounded-xl transition-all ${
+                                  isThisPillTaken 
+                                    ? 'opacity-50 cursor-not-allowed' 
+                                    : 'hover:bg-red-50 dark:hover:bg-red-900'
+                                }`}
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     toast({
@@ -1642,15 +1644,15 @@ export default function Home() {
                                 disabled={isThisPillTaken}
                                 data-testid={`med-skip-${med.id}-${pillIndex}`}
                               >
-                                <span className="text-2xl">👎</span>
-                                <span className="text-xs font-medium">Skip</span>
-                              </Button>
+                                <span className="text-3xl">👎</span>
+                                <span className="text-sm font-medium mt-1">Skip</span>
+                              </button>
                             </div>
                           </div>
                           
                           {isThisPillTaken && (
-                            <div className="mt-3 text-center">
-                              <span className="inline-block px-3 py-1 bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200 rounded-full text-sm font-medium">
+                            <div className="mt-4 text-center">
+                              <span className="inline-block px-4 py-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200 rounded-full text-sm font-medium">
                                 ✅ TAKEN
                               </span>
                             </div>
@@ -1661,8 +1663,8 @@ export default function Home() {
                   </div>
                   
                   {/* Frequency display at bottom - exactly like screenshot */}
-                  <div className="text-center mt-4">
-                    <span className="text-gray-600 dark:text-gray-400">
+                  <div className="text-center mt-6">
+                    <span className="text-lg text-gray-500 dark:text-gray-400 font-medium">
                       {med.frequency === 'daily' ? 'Once daily' : med.frequency === 'twice-daily' ? 'Twice daily' : 'Three times daily'}
                     </span>
                   </div>
