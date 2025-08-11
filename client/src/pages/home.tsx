@@ -1583,14 +1583,17 @@ export default function Home() {
                       );
                       
                       return (
-                        <div key={pillIndex} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-sm">
+                        <div key={pillIndex} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 border border-gray-200 dark:border-gray-600">
                           <div className="flex items-center justify-between">
-                            {/* Left: Pill icon - circular with pill emoji like screenshot */}
-                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-600">
-                              <span className="text-2xl">💊</span>
+                            {/* Left: Pill icon with red/white design exactly like screenshot */}
+                            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
+                              <div className="w-10 h-6 bg-gradient-to-r from-red-400 to-white rounded-full border border-gray-300 flex items-center">
+                                <div className="w-5 h-5 bg-red-400 rounded-full ml-0.5"></div>
+                                <div className="w-5 h-5 bg-white rounded-full mr-0.5"></div>
+                              </div>
                             </div>
                             
-                            {/* Center: Time display - large time format like screenshot */}
+                            {/* Center: Time display exactly like screenshot */}
                             <div className="text-center flex-1">
                               <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
                                 {timeDisplay}
@@ -1598,19 +1601,15 @@ export default function Home() {
                               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 {ampm}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
                                 {doseLabel}
                               </div>
                             </div>
                             
-                            {/* Right: Action buttons - thumbs up/down exactly like screenshot */}
-                            <div className="flex space-x-4">
+                            {/* Right: Thumbs up/down buttons exactly like screenshot */}
+                            <div className="flex space-x-3">
                               <button
-                                className={`flex flex-col items-center p-3 rounded-xl transition-all ${
-                                  isThisPillTaken 
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200' 
-                                    : 'hover:bg-green-50 dark:hover:bg-green-900'
-                                }`}
+                                className="flex flex-col items-center p-2 min-w-[60px] hover:bg-green-50 rounded-lg transition-colors"
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     markMedicationTakenMutation.mutate({
@@ -1623,15 +1622,11 @@ export default function Home() {
                                 data-testid={`med-taken-${med.id}-${pillIndex}`}
                               >
                                 <span className="text-3xl">👍</span>
-                                <span className="text-sm font-medium mt-1">Taken</span>
+                                <span className="text-sm font-medium text-gray-700">Taken</span>
                               </button>
                               
                               <button
-                                className={`flex flex-col items-center p-3 rounded-xl transition-all ${
-                                  isThisPillTaken 
-                                    ? 'opacity-50 cursor-not-allowed' 
-                                    : 'hover:bg-red-50 dark:hover:bg-red-900'
-                                }`}
+                                className="flex flex-col items-center p-2 min-w-[60px] hover:bg-red-50 rounded-lg transition-colors"
                                 onClick={() => {
                                   if (!isThisPillTaken) {
                                     toast({
@@ -1645,14 +1640,14 @@ export default function Home() {
                                 data-testid={`med-skip-${med.id}-${pillIndex}`}
                               >
                                 <span className="text-3xl">👎</span>
-                                <span className="text-sm font-medium mt-1">Skip</span>
+                                <span className="text-sm font-medium text-gray-700">Skip</span>
                               </button>
                             </div>
                           </div>
                           
                           {isThisPillTaken && (
-                            <div className="mt-4 text-center">
-                              <span className="inline-block px-4 py-2 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                            <div className="mt-3 text-center">
+                              <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                                 ✅ TAKEN
                               </span>
                             </div>
